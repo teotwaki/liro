@@ -19,11 +19,13 @@ svg {
   -webkit-animation: dash .9s ease-in-out;
   animation: dash .9s ease-in-out;
 }
+
 .line {
   stroke-dashoffset: 1000;
   -webkit-animation: dash .9s .35s ease-in-out forwards;
   animation: dash .9s .35s ease-in-out forwards;
 }
+
 .check {
   stroke-dashoffset: -100;
   -webkit-animation: dash-check .9s .35s ease-in-out forwards;
@@ -66,10 +68,15 @@ svg {
   }
 }
 
-div.message {
+.message {
   text-align: center;
   margin-top: 50px;
   font-size: 36px;
   font-family: Montserrat;
   color: white;
+}
+
+.small {
+  font-size: 12px;
+  color: #ddd;
 }

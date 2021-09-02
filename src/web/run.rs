@@ -7,7 +7,7 @@ fn with_db(pool: Pool) -> impl Filter<Extract = (Pool,), Error = Infallible> + C
     warp::any().map(move || pool.clone())
 }
 
-pub async fn run(pool: Pool) {
+pub async fn run(pool: &Pool) {
     let connect_lichess_route = warp::path!("connect" / "lichess" / u64)
         .and(with_db(pool.clone()))
         .and_then(connect_lichess_handler);

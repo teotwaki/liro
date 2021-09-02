@@ -7,11 +7,11 @@ pub async fn run() {
     let pool = db::connect().await.expect("Couldn't connect to pool");
 
     tokio::select! {
-        _ = web::run(pool) => {
+        _ = web::run(&pool) => {
             info!("Web server exited.");
         }
 
-        _ = bot::run() => {
+        _ = bot::run(&pool) => {
             info!("Bot client exited.");
         }
     }

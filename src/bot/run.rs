@@ -1,5 +1,6 @@
+use super::commands::account::*;
 use super::commands::meta::*;
-use crate::bot::Handler;
+use crate::{bot::Handler, db::Pool};
 use serenity::{
     client::bridge::gateway::{GatewayIntents, ShardManager},
     framework::{standard::macros::group, StandardFramework},
@@ -16,11 +17,17 @@ impl TypeMapKey for ShardManagerContainer {
     type Value = Arc<Mutex<ShardManager>>;
 }
 
+pub struct PoolContainer;
+
+impl TypeMapKey for PoolContainer {
+    type Value = Pool;
+}
+
 #[group]
-#[commands(ping)]
+#[commands(ping, account, rating)]
 struct General;
 
-pub async fn run() {
+pub async fn run(pool: &Pool) {
     let subscriber = FmtSubscriber::builder()
         .with_env_filter(EnvFilter::from_default_env())
         .finish();
@@ -45,7 +52,7 @@ pub async fn run() {
 
     // Create the framework
     let framework = StandardFramework::new()
-        .configure(|c| c.owners(owners).prefix("~"))
+        .configure(|c| c.owners(owners).prefix("ohnomy "))
         .group(&GENERAL_GROUP);
 
     // Create a new instance of the Client, logging in as a bot. This will
@@ -53,7 +60,7 @@ pub async fn run() {
     // by Discord for bot users.
     let mut client = Client::builder(&token)
         .framework(framework)
-        .event_handler(Handler::new().await)
+        .event_handler(Handler {})
         .intents(
             GatewayIntents::DIRECT_MESSAGES
                 | GatewayIntents::GUILD_MESSAGES
@@ -65,6 +72,7 @@ pub async fn run() {
     {
         let mut data = client.data.write().await;
         data.insert::<ShardManagerContainer>(client.shard_manager.clone());
+        data.insert::<PoolContainer>(pool.clone());
     }
 
     let shard_manager = client.shard_manager.clone();

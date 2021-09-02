@@ -53,6 +53,10 @@ impl User {
         self.save(pool).await?;
         Ok(())
     }
+
+    pub fn rating(&self) -> Option<i16> {
+        self.rating
+    }
 }
 
 impl fmt::Display for User {

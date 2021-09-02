@@ -17,8 +17,14 @@ pub async fn run(pool: Pool) {
         .and(with_db(pool.clone()))
         .and_then(oauth_callback_handler);
 
+    let assets_route = warp::path("assets").and(warp::fs::dir("assets"));
+
     let routes = warp::get()
-        .and(connect_lichess_route.or(oauth_callback_route))
+        .and(
+            connect_lichess_route
+                .or(oauth_callback_route)
+                .or(assets_route),
+        )
         .with(warp::log("web"))
         .recover(error::handle_rejection);
 

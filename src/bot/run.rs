@@ -110,13 +110,22 @@ impl GuildRoleManager {
         }
     }
 
-    pub fn add_role(&mut self, guild_id: u64, rating: RatingRange) {
+    pub fn add_rating_range(&mut self, guild_id: u64, rating: RatingRange) {
         if !self.ranges.contains_key(&guild_id) {
             self.ranges.insert(guild_id, Default::default());
         }
         let guild_roles = self.ranges.get_mut(&guild_id).unwrap();
 
         guild_roles.push(rating);
+    }
+
+    pub fn remove_role(&mut self, guild_id: u64, role_id: u64) {
+        self.ranges.get_mut(&guild_id).map(|ranges| {
+            ranges
+                .iter()
+                .position(|r| r.role_id == role_id)
+                .map(|position| ranges.remove(position));
+        });
     }
 
     pub fn find_rating_role(&self, guild_id: u64, rating: i16) -> Option<u64> {

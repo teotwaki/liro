@@ -56,8 +56,8 @@ async fn update_rating_roles(
         let data = ctx.data.read().await;
         let role_manager = data.get::<GuildRoleManagerContainer>().unwrap().clone();
         let dg = role_manager.lock().await.clone();
-        role_id = dg.find_rating_role(guild_id, rating).unwrap();
-        unneeded_roles = dg.other_roles(guild_id, role_id);
+        role_id = dg.find_rating_range_role(guild_id, rating).unwrap();
+        unneeded_roles = dg.other_rating_range_roles(guild_id, role_id);
     }
 
     debug!("Found role for rating level: {}", role_id);

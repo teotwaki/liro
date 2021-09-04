@@ -1,5 +1,7 @@
-use super::commands::account::*;
-use super::commands::meta::*;
+use super::{
+    commands::{account::*, meta::*},
+    role_manager::GuildRoleManager,
+};
 use crate::{bot::Handler, db::Pool};
 use serenity::{
     client::bridge::gateway::{GatewayIntents, ShardManager},
@@ -21,6 +23,12 @@ pub struct PoolContainer;
 
 impl TypeMapKey for PoolContainer {
     type Value = Pool;
+}
+
+pub struct GuildRoleManagerContainer;
+
+impl TypeMapKey for GuildRoleManagerContainer {
+    type Value = Arc<Mutex<GuildRoleManager>>;
 }
 
 #[group]
@@ -73,6 +81,7 @@ pub async fn run(pool: &Pool) {
         let mut data = client.data.write().await;
         data.insert::<ShardManagerContainer>(client.shard_manager.clone());
         data.insert::<PoolContainer>(pool.clone());
+        data.insert::<GuildRoleManagerContainer>(GuildRoleManager::new());
     }
 
     let shard_manager = client.shard_manager.clone();

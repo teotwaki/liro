@@ -28,7 +28,12 @@ impl GuildRoleManager {
             let max = captures.name("max")?.as_str().parse().ok();
             Some(RatingRange::new(role_id, min, max))
         } else if let Some(captures) = self.under_re.captures(name) {
-            let max = captures.name("max")?.as_str().parse().ok();
+            let max = captures
+                .name("max")?
+                .as_str()
+                .parse::<i16>()
+                .ok()
+                .and_then(|max| Some(max - 1));
             Some(RatingRange::new(role_id, None, max))
         } else if let Some(captures) = self.over_re.captures(name) {
             let min = captures.name("min")?.as_str().parse().ok();

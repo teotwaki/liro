@@ -16,9 +16,9 @@ impl RatingRange {
 
     pub fn is_match(&self, rating: i16) -> bool {
         match (self.min, self.max) {
-            (Some(min), Some(max)) => rating > min && rating < max,
-            (Some(min), _) => rating > min,
-            (_, Some(max)) => rating < max,
+            (Some(min), Some(max)) => rating >= min && rating <= max,
+            (Some(min), None) => rating >= min,
+            (None, Some(max)) => rating < max,
             _ => false,
         }
     }

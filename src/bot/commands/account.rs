@@ -1,5 +1,5 @@
 use crate::{
-    bot::run::PoolContainer,
+    bot::run::{GuildRoleManagerContainer, PoolContainer},
     lichess,
     models::{Challenge, User},
 };
@@ -41,6 +41,52 @@ async fn account(ctx: &Context, msg: &Message) -> CommandResult {
     }
 }
 
+async fn update_rating_roles(
+    ctx: &Context,
+    guild_id: u64,
+    author: &serenity::model::prelude::User,
+    rating: i16,
+) -> Result<(), String> {
+    let discord_id = *author.id.as_u64();
+    let member = ctx.http.get_member(guild_id, discord_id).await.unwrap();
+
+    let role_id;
+    let unneeded_roles;
+    {
+        let data = ctx.data.read().await;
+        let role_manager = data.get::<GuildRoleManagerContainer>().unwrap().clone();
+        let dg = role_manager.lock().await.clone();
+        role_id = dg.find_rating_role(guild_id, rating).unwrap();
+        unneeded_roles = dg.other_roles(guild_id, role_id);
+    }
+
+    debug!("Found role for rating level: {}", role_id);
+
+    if member.roles.contains(&RoleId(role_id)) {
+        debug!("User already has correct role");
+    } else {
+        debug!("User is missing the role, adding");
+        ctx.http
+            .add_member_role(guild_id, discord_id, role_id)
+            .await
+            .unwrap();
+        debug!("User role added");
+    }
+
+    for role_id in unneeded_roles {
+        if member.roles.contains(&RoleId(role_id)) {
+            debug!("User has extra role that should be removed");
+            ctx.http
+                .remove_member_role(guild_id, discord_id, role_id)
+                .await
+                .unwrap();
+            debug!("Role removed");
+        }
+    }
+
+    Ok(())
+}
+
 #[command]
 async fn rating(ctx: &Context, msg: &Message) -> CommandResult {
     let discord_id = *msg.author.id.as_u64();
@@ -48,6 +94,7 @@ async fn rating(ctx: &Context, msg: &Message) -> CommandResult {
         "Handling rating command for user with discord_id={}",
         discord_id
     );
+
     let pool;
     {
         let data = ctx.data.read().await;
@@ -58,6 +105,7 @@ async fn rating(ctx: &Context, msg: &Message) -> CommandResult {
         Ok(Some(mut user)) => {
             let old_rating = user.rating();
             let rating = lichess::api::fetch_user_rating(&user.lichess_username()).await?;
+            update_rating_roles(ctx, *msg.guild_id.unwrap().as_u64(), &msg.author, rating).await?;
             match old_rating {
                 Some(old_rating) if old_rating == rating => {
                     msg.channel_id

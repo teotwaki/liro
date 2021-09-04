@@ -48,9 +48,10 @@ impl GuildRoleManager {
             self.guild_rating_ranges
                 .insert(guild_id, Default::default());
         }
-        let guild_roles = self.guild_rating_ranges.get_mut(&guild_id).unwrap();
 
-        guild_roles.push(rating);
+        self.guild_rating_ranges
+            .get_mut(&guild_id)
+            .map(|grr| grr.push(rating));
     }
 
     pub fn remove_role(&mut self, guild_id: u64, role_id: u64) {

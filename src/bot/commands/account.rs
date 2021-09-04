@@ -46,9 +46,9 @@ async fn update_rating_roles(
     guild_id: u64,
     author: &serenity::model::prelude::User,
     rating: i16,
-) -> Result<(), String> {
+) -> CommandResult {
     let discord_id = *author.id.as_u64();
-    let member = ctx.http.get_member(guild_id, discord_id).await.unwrap();
+    let member = ctx.http.get_member(guild_id, discord_id).await?;
 
     let role_id;
     let unneeded_roles;
@@ -78,8 +78,7 @@ async fn update_rating_roles(
             debug!("User has extra role that should be removed");
             ctx.http
                 .remove_member_role(guild_id, discord_id, role_id)
-                .await
-                .unwrap();
+                .await?;
             debug!("Role removed");
         }
     }

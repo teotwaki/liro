@@ -31,6 +31,7 @@ impl EventHandler for Handler {
     }
 
     async fn guild_role_delete(&self, ctx: Context, guild_id: GuildId, role_id: RoleId) {
+        trace!("Handler::guild_role_delete() called");
         debug!("Removing role_id={} from guild_id={}", role_id, guild_id);
         let data = ctx.data.read().await;
         let role_manager = data.get::<GuildRoleManagerContainer>().unwrap();
@@ -46,6 +47,7 @@ impl EventHandler for Handler {
     //
     // In this case, just print what the current user's username is.
     async fn ready(&self, _: Context, ready: Ready) {
+        trace!("Handler::ready() called");
         info!("{} is now online", ready.user.tag());
     }
 }

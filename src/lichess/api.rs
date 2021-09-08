@@ -9,11 +9,13 @@ pub struct LichessUser {
 
 impl LichessUser {
     pub fn get_username(&self) -> &str {
+        trace!("LichessUser::get_username() called");
         &self.username
     }
 }
 
 pub async fn fetch_account(access_token: &str) -> Result<LichessUser> {
+    trace!("fetch_account() called");
     let result = reqwest::Client::new()
         .get("https://lichess.org/api/account")
         .header("Authorization", format!("Bearer {}", access_token))
@@ -43,6 +45,7 @@ struct Profile {
 
 impl Profile {
     pub fn calculate_rating(&self) -> i16 {
+        trace!("Profile::calculate_rating() called");
         let game_modes: Vec<String> = ["bullet", "blitz", "rapid", "classical"]
             .iter()
             .map(|s| s.to_string())
@@ -66,6 +69,7 @@ impl Profile {
 }
 
 pub async fn fetch_user_rating(user: &str) -> Result<i16> {
+    trace!("fetch_user_rating() called");
     let result = reqwest::get(format!("https://lichess.org/api/user/{}", user)).await?;
 
     if result.status().is_success() {

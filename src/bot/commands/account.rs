@@ -11,6 +11,7 @@ use serenity::{
 
 #[command]
 async fn account(ctx: &Context, msg: &Message) -> CommandResult {
+    trace!("account() called");
     let discord_id = *msg.author.id.as_u64();
     let pool;
     {
@@ -47,6 +48,7 @@ async fn update_rating_roles(
     author: &serenity::model::prelude::User,
     rating: i16,
 ) -> CommandResult {
+    trace!("update_rating_roles() called");
     let discord_id = *author.id.as_u64();
     let member = ctx.http.get_member(guild_id, discord_id).await?;
 
@@ -88,6 +90,7 @@ async fn update_rating_roles(
 
 #[command]
 async fn rating(ctx: &Context, msg: &Message) -> CommandResult {
+    trace!("rating() called");
     let discord_id = *msg.author.id.as_u64();
     debug!(
         "Handling rating command for user with discord_id={}",

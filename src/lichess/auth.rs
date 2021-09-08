@@ -14,6 +14,7 @@ impl AccessToken {
 }
 
 pub async fn fetch_access_token(code: &str, code_verifier: &str) -> Result<String> {
+    trace!("fetch_access_token() called");
     let query_params = [
         ("grant_type", "authorization_code"),
         ("code", code),

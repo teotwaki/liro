@@ -1,6 +1,7 @@
 use std::env;
 
 fn db_host() -> Option<String> {
+    trace!("db_host() called");
     match env::var("DB_HOST") {
         Ok(v) => Some(v),
         Err(e) => {
@@ -11,6 +12,7 @@ fn db_host() -> Option<String> {
 }
 
 pub fn redis_uri() -> String {
+    trace!("redis_uri() called");
     match db_host() {
         Some(v) => format!("redis://{}/", v),
         None => {
@@ -21,6 +23,7 @@ pub fn redis_uri() -> String {
 }
 
 pub fn hostname() -> String {
+    trace!("hostname() called");
     match env::var("HOSTNAME") {
         Ok(v) => v,
         Err(e) => {
@@ -32,6 +35,7 @@ pub fn hostname() -> String {
 }
 
 pub fn client_id() -> String {
+    trace!("client_id() called");
     match env::var("CLIENT_ID") {
         Ok(v) => v,
         Err(e) => {

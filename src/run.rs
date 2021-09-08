@@ -1,6 +1,7 @@
 use crate::{bot, db, web};
 
 pub async fn run() {
+    trace!("run() called");
     dotenv::dotenv().ok();
     pretty_env_logger::init();
 

@@ -23,6 +23,7 @@ pub enum Error {
 pub type Result<T> = std::result::Result<T, Error>;
 
 pub async fn connect() -> Result<Pool> {
+    trace!("connect() called");
     let redis_uri = config::redis_uri();
     let client = redis::Client::open(redis_uri).map_err(|e| Error::ClientError(e))?;
 
@@ -33,10 +34,12 @@ pub async fn connect() -> Result<Pool> {
 }
 
 async fn get_connection(pool: &Pool) -> Result<Connection> {
+    trace!("get_connection() called");
     Ok(pool.get().await?)
 }
 
 pub async fn set(pool: &Pool, key: &str, value: &str) -> Result<()> {
+    trace!("set() called");
     let mut conn = get_connection(&pool).await?;
 
     conn.set(key, value).await?;

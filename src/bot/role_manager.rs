@@ -13,6 +13,7 @@ pub struct GuildRoleManager {
 
 impl GuildRoleManager {
     pub fn new() -> Arc<Mutex<GuildRoleManager>> {
+        trace!("GuildRoleManager::new() called");
         let role_manager = GuildRoleManager {
             guild_rating_ranges: Default::default(),
             under_re: Regex::new(r"U(?P<max>\d{3,4})").unwrap(),
@@ -23,6 +24,7 @@ impl GuildRoleManager {
     }
 
     pub fn parse_rating_range(&self, role_id: u64, name: &str) -> Option<RatingRange> {
+        trace!("GuildRoleManager::parse_rating_range() called");
         if let Some(captures) = self.range_re.captures(name) {
             let min = captures.name("min")?.as_str().parse().ok();
             let max = captures.name("max")?.as_str().parse().ok();
@@ -55,6 +57,7 @@ impl GuildRoleManager {
     }
 
     pub fn remove_role(&mut self, guild_id: u64, role_id: u64) {
+        trace!("GuildRoleManager::remove_role() called");
         self.guild_rating_ranges.get_mut(&guild_id).map(|ranges| {
             ranges
                 .iter()
@@ -64,6 +67,7 @@ impl GuildRoleManager {
     }
 
     pub fn find_rating_range_role(&self, guild_id: u64, rating: i16) -> Option<u64> {
+        trace!("GuildRoleManager::find_rating_range_role() called");
         let ranges = self.guild_rating_ranges.get(&guild_id)?;
         ranges
             .iter()
@@ -72,6 +76,7 @@ impl GuildRoleManager {
     }
 
     pub fn other_rating_range_roles(&self, guild_id: u64, role_id: u64) -> Vec<u64> {
+        trace!("GuildRoleManager::other_rating_range_roles() called");
         match self.guild_rating_ranges.get(&guild_id) {
             Some(ranges) => ranges
                 .iter()

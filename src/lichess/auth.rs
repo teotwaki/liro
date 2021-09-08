@@ -1,4 +1,5 @@
 use super::{Error::*, Result};
+use crate::config;
 use serde::Deserialize;
 
 #[derive(Deserialize)]
@@ -17,10 +18,10 @@ pub async fn fetch_access_token(code: &str, code_verifier: &str) -> Result<Strin
         ("grant_type", "authorization_code"),
         ("code", code),
         ("code_verifier", code_verifier),
-        ("client_id", "liro-bot-test"),
+        ("client_id", &config::client_id()),
         (
             "redirect_uri",
-            &format!("{}/oauth/callback", "http://localhost:8000"),
+            &format!("{}/oauth/callback", config::hostname()),
         ),
     ];
 

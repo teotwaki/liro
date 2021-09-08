@@ -2,6 +2,7 @@
 extern crate log;
 
 mod bot;
+mod config;
 mod db;
 mod lichess;
 mod models;

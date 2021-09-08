@@ -1,3 +1,4 @@
+use crate::config;
 use mobc_redis::{
     redis::{self, AsyncCommands, FromRedisValue},
     RedisConnectionManager,
@@ -22,7 +23,8 @@ pub enum Error {
 pub type Result<T> = std::result::Result<T, Error>;
 
 pub async fn connect() -> Result<Pool> {
-    let client = redis::Client::open("redis://127.0.0.1/").map_err(|e| Error::ClientError(e))?;
+    let redis_uri = config::redis_uri();
+    let client = redis::Client::open(redis_uri).map_err(|e| Error::ClientError(e))?;
 
     let manager = RedisConnectionManager::new(client);
     let pool = mobc::Pool::builder().max_open(20).build(manager);

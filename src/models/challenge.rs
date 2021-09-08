@@ -1,9 +1,9 @@
-use crate::db::{self, Result};
+use crate::{
+    config,
+    db::{self, Result},
+};
 use serde::{Deserialize, Serialize};
 use std::fmt;
-
-const HOSTNAME: &str = "http://localhost:8000";
-const CLIENT_ID: &str = "liro-bot-test";
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Challenge {
@@ -42,7 +42,7 @@ impl Challenge {
     }
 
     pub fn link(&self) -> String {
-        format!("{}/connect/lichess/{}", HOSTNAME, self.id)
+        format!("{}/connect/lichess/{}", config::hostname(), self.id)
     }
 
     fn code_challenge(&self) -> String {
@@ -58,7 +58,7 @@ impl Challenge {
     }
 
     pub fn lichess_url(&self) -> String {
-        let redirect_uri = format!("{}/oauth/callback", HOSTNAME);
+        let redirect_uri = format!("{}/oauth/callback", config::hostname());
         let url = format!(
             "https://lichess.org/oauth\
              ?response_type=code\
@@ -68,7 +68,7 @@ impl Challenge {
              &code_challenge={}\
              &state={}",
             redirect_uri,
-            CLIENT_ID,
+            config::client_id(),
             self.code_challenge(),
             self.state()
         );

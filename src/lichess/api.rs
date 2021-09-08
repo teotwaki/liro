@@ -33,8 +33,8 @@ pub async fn fetch_account(access_token: &str) -> Result<LichessUser> {
 
 #[derive(Deserialize)]
 struct FormatRating {
-    games: i64,
-    rating: i16,
+    games: Option<i64>,
+    rating: Option<i16>,
 }
 
 #[derive(Deserialize)]
@@ -51,18 +51,17 @@ impl Profile {
             .map(|s| s.to_string())
             .collect();
 
-        let (total_rating, total_games) =
-            self.perfs
-                .iter()
-                .fold((0, 0), |acc, (k, v)| match game_modes.contains(k) {
-                    true => {
-                        let rating = acc.0 + v.rating as i64 * v.games;
-                        let games = acc.1 + v.games;
+        let (total_rating, total_games) = self.perfs.iter().fold((0, 0), |acc, (k, v)| {
+            match (v.rating, v.games, game_modes.contains(k)) {
+                (Some(rating), Some(games), true) => {
+                    let rating = acc.0 + rating as i64 * games;
+                    let games = acc.1 + games;
 
-                        (rating, games)
-                    }
-                    false => acc,
-                });
+                    (rating, games)
+                }
+                _ => acc,
+            }
+        });
 
         (total_rating / total_games) as i16
     }

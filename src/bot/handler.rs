@@ -26,7 +26,11 @@ impl EventHandler for Handler {
     }
 
     async fn guild_role_create(&self, ctx: Context, guild_id: GuildId, role: Role) {
-        debug!("Adding role_id={} in guild_id={}", role.id, guild_id);
+        trace!("Handler::guild_role_create() called");
+        info!(
+            "Adding role {} (role_id={}) in guild_id{}",
+            role.name, role.id, guild_id
+        );
         let data = ctx.data.read().await;
         let role_manager = data.get::<GuildRoleManagerContainer>().unwrap();
         let mut dg = role_manager.lock().await;

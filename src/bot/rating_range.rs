@@ -37,20 +37,20 @@ impl fmt::Display for RatingRange {
         match (self.min, self.max) {
             (Some(min), Some(max)) => write!(
                 f,
-                "RatingRange<role_id={} min={} max={}",
+                "RatingRange<role_id={} min={} max={}>",
                 self.role_id, min, max
             ),
             (Some(min), None) => write!(
                 f,
-                "RatingRange<role_id={} min={} max=None",
+                "RatingRange<role_id={} min={} max=None>",
                 self.role_id, min
             ),
             (None, Some(max)) => write!(
                 f,
-                "RatingRange<role_id={} min=None max={}",
+                "RatingRange<role_id={} min=None max={}>",
                 self.role_id, max
             ),
-            (None, None) => write!(f, "RatingRange<role_id={} min=None max=None", self.role_id),
+            (None, None) => write!(f, "RatingRange<role_id={} min=None max=None>", self.role_id),
         }
     }
 }

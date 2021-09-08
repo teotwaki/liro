@@ -95,6 +95,7 @@ impl Challenge {
 
 impl fmt::Display for Challenge {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Challenge<id={}, user_id={}>", self.id, self.discord_id)
+        trace!("Challenge::fmt() called");
+        write!(f, "Challenge<id={} user_id={}>", self.id, self.discord_id)
     }
 }

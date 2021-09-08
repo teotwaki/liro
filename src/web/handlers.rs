@@ -15,6 +15,7 @@ struct AccountLinkedTemplate<'a> {
 }
 
 pub async fn connect_lichess_handler(challenge_id: u64, pool: Pool) -> Result<impl Reply> {
+    trace!("connect_lichess_handler() called");
     let challenge = Challenge::find(&pool, challenge_id)
         .await
         .expect("Couldn't query database");
@@ -35,6 +36,7 @@ pub struct CallbackParams {
 }
 
 pub async fn oauth_callback_handler(params: CallbackParams, pool: Pool) -> Result<impl Reply> {
+    trace!("oauth_callback_handler() called");
     let challenge = Challenge::find(&pool, params.state)
         .await
         .map_err(|_| DBAccessError)?

@@ -11,10 +11,12 @@ pub struct User {
 
 impl User {
     fn key(id: u64) -> String {
+        trace!("User::key() called");
         format!("users:{}", id)
     }
 
     pub async fn new(pool: &db::Pool, discord_id: u64, lichess_username: String) -> Result<User> {
+        trace!("User::new() called");
         let user = User {
             discord_id,
             lichess_username,
@@ -27,6 +29,7 @@ impl User {
     }
 
     async fn save(&self, pool: &db::Pool) -> Result<()> {
+        trace!("User::save() called");
         debug!("Saving {}", &self);
         let serialized = serde_json::to_string(self)?;
         db::set(pool, &User::key(self.discord_id), &serialized).await?;
@@ -35,19 +38,29 @@ impl User {
     }
 
     pub async fn find(pool: &db::Pool, id: u64) -> Result<Option<User>> {
-        debug!("Looking up discord_id={}", id);
-        let serialized = db::get(pool, &User::key(id)).await?;
-        let user = serde_json::from_str(&serialized)?;
-        debug!("Found {}", &user);
+        trace!("User::find() called");
+        debug!("Looking up user with discord_id={}", id);
 
-        Ok(Some(user))
+        match db::get(pool, &User::key(id)).await? {
+            Some(serialized) => {
+                let user = serde_json::from_str(&serialized)?;
+                debug!("Found {}", user);
+                Ok(Some(user))
+            }
+            None => {
+                debug!("User not found");
+                Ok(None)
+            }
+        }
     }
 
     pub fn lichess_username(&self) -> &str {
+        trace!("User::lichess_username() called");
         &self.lichess_username
     }
 
     pub async fn update_rating(&mut self, pool: &db::Pool, rating: i16) -> Result<()> {
+        trace!("User::update_rating() called");
         debug!("Updating {}", self);
         self.rating = Some(rating);
         self.save(pool).await?;
@@ -55,12 +68,14 @@ impl User {
     }
 
     pub fn rating(&self) -> Option<i16> {
+        trace!("User::rating() called");
         self.rating
     }
 }
 
 impl fmt::Display for User {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        trace!("User::fmt() called");
         match self.rating {
             Some(rating) => write!(
                 f,

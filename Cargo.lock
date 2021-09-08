@@ -746,6 +746,7 @@ dependencies = [
  "log",
  "mobc",
  "mobc-redis",
+ "openssl-probe",
  "pkce",
  "pretty_env_logger",
  "rand 0.8.4",

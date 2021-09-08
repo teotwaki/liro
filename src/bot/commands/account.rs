@@ -11,7 +11,13 @@ use serenity::{
 
 #[command]
 async fn account(ctx: &Context, msg: &Message) -> CommandResult {
+    trace!("account() called");
     let discord_id = *msg.author.id.as_u64();
+
+    info!(
+        "Handling account command for {} (id={})",
+        msg.author.name, discord_id
+    );
     let pool;
     {
         let data = ctx.data.read().await;
@@ -24,21 +30,29 @@ async fn account(ctx: &Context, msg: &Message) -> CommandResult {
         challenge.link()
     );
 
-    let dm_future = msg.author.dm(&ctx, |m| {
-        m.content(whisper);
-        m
-    });
+    let message = match msg
+        .author
+        .dm(&ctx, |m| {
+            m.content(whisper);
+            m
+        })
+        .await
+    {
+        Ok(_) => "Please check your DMs :)",
+        Err(e) => {
+            warn!("Failed to send DM to user {}: {}", discord_id, e);
+            "I wasn't able to send you a DM. Could you please allow me to message you so I can verify your lichess account?"
+        }
+    };
 
-    let reply_future = msg.channel_id.send_message(&ctx, |m| {
-        m.content("Please check your DMs :)");
-        m
-    });
+    msg.channel_id
+        .send_message(&ctx, |m| {
+            m.content(message);
+            m
+        })
+        .await?;
 
-    match tokio::join!(dm_future, reply_future) {
-        (Err(e), _) => Err(Box::new(e)),
-        (_, Err(e)) => Err(Box::new(e)),
-        _ => Ok(()),
-    }
+    Ok(())
 }
 
 async fn update_rating_roles(
@@ -47,6 +61,7 @@ async fn update_rating_roles(
     author: &serenity::model::prelude::User,
     rating: i16,
 ) -> CommandResult {
+    trace!("update_rating_roles() called");
     let discord_id = *author.id.as_u64();
     let member = ctx.http.get_member(guild_id, discord_id).await?;
 
@@ -88,6 +103,7 @@ async fn update_rating_roles(
 
 #[command]
 async fn rating(ctx: &Context, msg: &Message) -> CommandResult {
+    trace!("rating() called");
     let discord_id = *msg.author.id.as_u64();
     debug!(
         "Handling rating command for user with discord_id={}",

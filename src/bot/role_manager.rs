@@ -13,6 +13,7 @@ pub struct GuildRoleManager {
 
 impl GuildRoleManager {
     pub fn new() -> Arc<Mutex<GuildRoleManager>> {
+        trace!("GuildRoleManager::new() called");
         let role_manager = GuildRoleManager {
             guild_rating_ranges: Default::default(),
             under_re: Regex::new(r"U(?P<max>\d{3,4})").unwrap(),
@@ -23,6 +24,7 @@ impl GuildRoleManager {
     }
 
     pub fn parse_rating_range(&self, role_id: u64, name: &str) -> Option<RatingRange> {
+        trace!("GuildRoleManager::parse_rating_range() called");
         if let Some(captures) = self.range_re.captures(name) {
             let min = captures.name("min")?.as_str().parse().ok();
             let max = captures.name("max")?.as_str().parse().ok();
@@ -43,18 +45,29 @@ impl GuildRoleManager {
         }
     }
 
-    pub fn add_rating_range(&mut self, guild_id: u64, rating: RatingRange) {
-        if !self.guild_rating_ranges.contains_key(&guild_id) {
-            self.guild_rating_ranges
-                .insert(guild_id, Default::default());
-        }
+    /// Initializes a new guild in the manager
+    ///
+    /// This overwrites previously-existing guilds. If a guild with the same ID already existed, it
+    /// will be overwritten.
+    pub fn add_guild(&mut self, guild_id: u64) {
+        trace!("GuildRoleManager::add_guild() called");
+        self.guild_rating_ranges
+            .insert(guild_id, Default::default());
+    }
 
+    /// Adds a new rating range role for the specific `guild_id`
+    ///
+    /// If the `guild_id` does not exist in the role manager, nothing will happen. This function
+    /// does not panic or throw an error.
+    pub fn add_rating_range(&mut self, guild_id: u64, rating: RatingRange) {
+        trace!("GuildRoleManager::add_rating_range() called");
         self.guild_rating_ranges
             .get_mut(&guild_id)
             .map(|grr| grr.push(rating));
     }
 
     pub fn remove_role(&mut self, guild_id: u64, role_id: u64) {
+        trace!("GuildRoleManager::remove_role() called");
         self.guild_rating_ranges.get_mut(&guild_id).map(|ranges| {
             ranges
                 .iter()
@@ -64,6 +77,7 @@ impl GuildRoleManager {
     }
 
     pub fn find_rating_range_role(&self, guild_id: u64, rating: i16) -> Option<u64> {
+        trace!("GuildRoleManager::find_rating_range_role() called");
         let ranges = self.guild_rating_ranges.get(&guild_id)?;
         ranges
             .iter()
@@ -72,6 +86,7 @@ impl GuildRoleManager {
     }
 
     pub fn other_rating_range_roles(&self, guild_id: u64, role_id: u64) -> Vec<u64> {
+        trace!("GuildRoleManager::other_rating_range_roles() called");
         match self.guild_rating_ranges.get(&guild_id) {
             Some(ranges) => ranges
                 .iter()

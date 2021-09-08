@@ -12,6 +12,7 @@ serde_json = "1.0"
 thiserror = "1.0"
 tracing = "0.1"
 tracing-subscriber = "0.2"
+openssl-probe = "0.1"
 
 rand = "0.8"
 pkce = "0.1"

@@ -27,6 +27,7 @@ struct ErrorTemplate {
 }
 
 pub async fn handle_rejection(err: Rejection) -> std::result::Result<impl Reply, Infallible> {
+    trace!("handle_rejection() called");
     let code;
     let message;
 

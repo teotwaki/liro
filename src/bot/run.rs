@@ -36,6 +36,7 @@ impl TypeMapKey for GuildRoleManagerContainer {
 struct General;
 
 pub async fn run(pool: &Pool) {
+    trace!("run() called");
     let subscriber = FmtSubscriber::builder()
         .with_env_filter(EnvFilter::from_default_env())
         .finish();

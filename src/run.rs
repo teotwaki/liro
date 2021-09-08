@@ -1,8 +1,11 @@
 use crate::{bot, db, web};
 
 pub async fn run() {
+    trace!("run() called");
     dotenv::dotenv().ok();
     pretty_env_logger::init();
+
+    openssl_probe::init_ssl_cert_env_vars();
 
     let pool = db::connect().await.expect("Couldn't connect to pool");
 

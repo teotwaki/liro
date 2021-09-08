@@ -1,3 +1,4 @@
+use crate::config;
 use mobc_redis::{
     redis::{self, AsyncCommands, FromRedisValue},
     RedisConnectionManager,
@@ -22,7 +23,9 @@ pub enum Error {
 pub type Result<T> = std::result::Result<T, Error>;
 
 pub async fn connect() -> Result<Pool> {
-    let client = redis::Client::open("redis://127.0.0.1/").map_err(|e| Error::ClientError(e))?;
+    trace!("connect() called");
+    let redis_uri = config::redis_uri();
+    let client = redis::Client::open(redis_uri).map_err(|e| Error::ClientError(e))?;
 
     let manager = RedisConnectionManager::new(client);
     let pool = mobc::Pool::builder().max_open(20).build(manager);
@@ -31,19 +34,25 @@ pub async fn connect() -> Result<Pool> {
 }
 
 async fn get_connection(pool: &Pool) -> Result<Connection> {
+    trace!("get_connection() called");
     Ok(pool.get().await?)
 }
 
 pub async fn set(pool: &Pool, key: &str, value: &str) -> Result<()> {
+    trace!("set() called");
     let mut conn = get_connection(&pool).await?;
 
     conn.set(key, value).await?;
     Ok(())
 }
 
-pub async fn get(pool: &Pool, key: &str) -> Result<String> {
+pub async fn get(pool: &Pool, key: &str) -> Result<Option<String>> {
+    trace!("get() called");
     let mut conn = get_connection(&pool).await?;
 
     let value = conn.get(key).await?;
-    Ok(FromRedisValue::from_redis_value(&value).map_err(|e| Error::TypeError(e))?)
+    Ok(match value {
+        redis::Value::Nil => None,
+        _ => Some(FromRedisValue::from_redis_value(&value).map_err(|e| Error::TypeError(e))?),
+    })
 }

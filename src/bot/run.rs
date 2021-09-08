@@ -5,8 +5,12 @@ use super::{
 use crate::{bot::Handler, db::Pool};
 use serenity::{
     client::bridge::gateway::{GatewayIntents, ShardManager},
-    framework::{standard::macros::group, StandardFramework},
+    framework::{
+        standard::macros::{group, hook},
+        StandardFramework,
+    },
     http::Http,
+    model::channel::Message,
     prelude::*,
 };
 use std::{collections::HashSet, env, sync::Arc};
@@ -32,8 +36,22 @@ impl TypeMapKey for GuildRoleManagerContainer {
 }
 
 #[group]
-#[commands(ping, account, rating)]
+#[commands(ping, help, account, rating)]
 struct General;
+
+#[hook]
+async fn unknown_command(ctx: &Context, msg: &Message, unknown_command_name: &str) {
+    trace!("unknown_command() called");
+
+    let message = format!(
+        "Could not understand command `{}`. Please see `help` for more information",
+        unknown_command_name
+    );
+    match msg.channel_id.say(&ctx.http, message).await {
+        Err(e) => error!("Unable to send response to channel: {}", e),
+        _ => {}
+    }
+}
 
 pub async fn run(pool: &Pool) {
     trace!("run() called");
@@ -62,6 +80,7 @@ pub async fn run(pool: &Pool) {
     // Create the framework
     let framework = StandardFramework::new()
         .configure(|c| c.owners(owners).prefix("ohnomy "))
+        .unrecognised_command(unknown_command)
         .group(&GENERAL_GROUP);
 
     // Create a new instance of the Client, logging in as a bot. This will

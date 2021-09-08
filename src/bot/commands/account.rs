@@ -122,24 +122,45 @@ async fn rating(ctx: &Context, msg: &Message) -> CommandResult {
             let rating = lichess::api::fetch_user_rating(&user.lichess_username()).await?;
             update_rating_roles(ctx, *msg.guild_id.unwrap().as_u64(), &msg.author, rating).await?;
             match old_rating {
-                Some(old_rating) if old_rating == rating => {
+                Some(old_rating) => {
+                    let response = if old_rating == rating {
+                        format!("Your average lichess rating is still {}", rating)
+                    } else {
+                        user.update_rating(&pool, rating).await?;
+
+                        if old_rating > rating {
+                            format!(
+                                "Your average lichess rating went down from {} to {}",
+                                old_rating, rating
+                            )
+                        } else {
+                            format!(
+                                "Your average lichess rating went up from {} to {}",
+                                old_rating, rating
+                            )
+                        }
+                    };
                     msg.channel_id
                         .send_message(&ctx, |m| {
-                            m.content(format!("Sorry, no change. Your rating is still {}", rating));
+                            m.content(response);
                             m
                         })
                         .await?;
                 }
-                _ => {
+                None => {
                     user.update_rating(&pool, rating).await?;
                     msg.channel_id
                         .send_message(&ctx, |m| {
-                            m.content(format!("Your rating is now {}", rating));
+                            m.content(format!(
+                                "Welcome to the liro gang! Your average lichess rating is {}",
+                                rating
+                            ));
                             m
                         })
                         .await?;
                 }
             }
+
             Ok(())
         }
         Ok(None) => {

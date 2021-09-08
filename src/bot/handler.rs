@@ -10,13 +10,18 @@ pub struct Handler;
 #[async_trait]
 impl EventHandler for Handler {
     async fn guild_create(&self, ctx: Context, guild: Guild) {
+        trace!("Handler::guild_create() called");
+        info!("Joining new guild {}", guild.name);
+        let guild_id = *guild.id.as_u64();
         let data = ctx.data.read().await;
         let role_manager = data.get::<GuildRoleManagerContainer>().unwrap();
         let mut dg = role_manager.lock().await;
 
+        dg.add_guild(guild_id);
+
         for (role_id, role) in &guild.roles {
             dg.parse_rating_range(*role_id.as_u64(), &role.name)
-                .map(|rr| dg.add_rating_range(*guild.id.as_u64(), rr));
+                .map(|rr| dg.add_rating_range(guild_id, rr));
         }
     }
 

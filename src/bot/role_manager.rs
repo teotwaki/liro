@@ -45,12 +45,22 @@ impl GuildRoleManager {
         }
     }
 
-    pub fn add_rating_range(&mut self, guild_id: u64, rating: RatingRange) {
-        if !self.guild_rating_ranges.contains_key(&guild_id) {
-            self.guild_rating_ranges
-                .insert(guild_id, Default::default());
-        }
+    /// Initializes a new guild in the manager
+    ///
+    /// This overwrites previously-existing guilds. If a guild with the same ID already existed, it
+    /// will be overwritten.
+    pub fn add_guild(&mut self, guild_id: u64) {
+        trace!("GuildRoleManager::add_guild() called");
+        self.guild_rating_ranges
+            .insert(guild_id, Default::default());
+    }
 
+    /// Adds a new rating range role for the specific `guild_id`
+    ///
+    /// If the `guild_id` does not exist in the role manager, nothing will happen. This function
+    /// does not panic or throw an error.
+    pub fn add_rating_range(&mut self, guild_id: u64, rating: RatingRange) {
+        trace!("GuildRoleManager::add_rating_range() called");
         self.guild_rating_ranges
             .get_mut(&guild_id)
             .map(|grr| grr.push(rating));

@@ -28,5 +28,5 @@ pub async fn run(pool: &Pool) {
         .with(warp::log("web"))
         .recover(error::handle_rejection);
 
-    warp::serve(routes).run(([127, 0, 0, 1], 8000)).await;
+    warp::serve(routes).run(([0, 0, 0, 0], 8000)).await;
 }

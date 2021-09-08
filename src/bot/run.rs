@@ -32,7 +32,7 @@ impl TypeMapKey for GuildRoleManagerContainer {
 }
 
 #[group]
-#[commands(ping, account, rating)]
+#[commands(ping, help, account, rating)]
 struct General;
 
 pub async fn run(pool: &Pool) {

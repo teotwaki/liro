@@ -38,12 +38,20 @@ impl User {
     }
 
     pub async fn find(pool: &db::Pool, id: u64) -> Result<Option<User>> {
-        debug!("Looking up discord_id={}", id);
-        let serialized = db::get(pool, &User::key(id)).await?;
-        let user = serde_json::from_str(&serialized)?;
-        debug!("Found {}", &user);
+        trace!("User::find() called");
+        debug!("Looking up user with discord_id={}", id);
 
-        Ok(Some(user))
+        match db::get(pool, &User::key(id)).await? {
+            Some(serialized) => {
+                let user = serde_json::from_str(&serialized)?;
+                debug!("Found {}", user);
+                Ok(Some(user))
+            }
+            None => {
+                debug!("User not found");
+                Ok(None)
+            }
+        }
     }
 
     pub fn lichess_username(&self) -> &str {

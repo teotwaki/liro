@@ -40,8 +40,11 @@ impl Challenge {
     }
 
     pub async fn find(pool: &db::Pool, id: u64) -> Result<Option<Challenge>> {
-        let serialized = db::get(pool, &Challenge::key(id)).await?;
-        Ok(Some(serde_json::from_str(&serialized)?))
+        trace!("Challenge::find() called");
+        match db::get(pool, &Challenge::key(id)).await? {
+            Some(serialized) => Ok(Some(serde_json::from_str(&serialized)?)),
+            None => Ok(None),
+        }
     }
 
     pub fn link(&self) -> String {

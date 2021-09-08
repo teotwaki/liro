@@ -46,9 +46,13 @@ pub async fn set(pool: &Pool, key: &str, value: &str) -> Result<()> {
     Ok(())
 }
 
-pub async fn get(pool: &Pool, key: &str) -> Result<String> {
+pub async fn get(pool: &Pool, key: &str) -> Result<Option<String>> {
+    trace!("get() called");
     let mut conn = get_connection(&pool).await?;
 
     let value = conn.get(key).await?;
-    Ok(FromRedisValue::from_redis_value(&value).map_err(|e| Error::TypeError(e))?)
+    Ok(match value {
+        redis::Value::Nil => None,
+        _ => Some(FromRedisValue::from_redis_value(&value).map_err(|e| Error::TypeError(e))?),
+    })
 }

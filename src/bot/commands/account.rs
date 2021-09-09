@@ -165,7 +165,7 @@ async fn rating(ctx: &Context, msg: &Message) -> CommandResult {
         }
         Ok(None) => {
             msg.channel_id.send_message(&ctx, |m| {
-                m.content("Couldn't find a lichess user associated with your account. Please use the `account` command first.");
+                m.content("Couldn't find a lichess user associated with your account. Please use the `ohnomy account` command first.");
                 m
             }).await?;
             Ok(())

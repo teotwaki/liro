@@ -67,7 +67,7 @@ pub async fn run(pool: &Pool) {
     let http = Http::new_with_token(&token);
 
     // We will fetch your bot's owners and id
-    let (owners, _bot_id) = match http.get_current_application_info().await {
+    let (owners, bot_id) = match http.get_current_application_info().await {
         Ok(info) => {
             let mut owners = HashSet::new();
             owners.insert(info.owner.id);
@@ -79,7 +79,15 @@ pub async fn run(pool: &Pool) {
 
     // Create the framework
     let framework = StandardFramework::new()
-        .configure(|c| c.owners(owners).prefix("ohnomy "))
+        .configure(|c| {
+            c.owners(owners)
+                .with_whitespace(true)
+                .prefix("") // disable default ~ prefix
+                .prefixes(vec!["ohnomy", "oh no my"])
+                .case_insensitivity(true)
+                .on_mention(Some(bot_id))
+                .ignore_bots(true)
+        })
         .unrecognised_command(unknown_command)
         .group(&GENERAL_GROUP);
 

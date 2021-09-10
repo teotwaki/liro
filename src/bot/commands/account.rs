@@ -130,12 +130,14 @@ async fn rating(ctx: &Context, msg: &Message) -> CommandResult {
 
                         if old_rating > rating {
                             format!(
-                                "Your average lichess rating went down from {} to {}",
+                                ":chart_with_downwards_trend: Your average lichess rating went \
+                                down from {} to {}",
                                 old_rating, rating
                             )
                         } else {
                             format!(
-                                "Your average lichess rating went up from {} to {}",
+                                ":chart_with_upwards_trend: Your average lichess rating went up \
+                                from {} to {}",
                                 old_rating, rating
                             )
                         }
@@ -164,10 +166,15 @@ async fn rating(ctx: &Context, msg: &Message) -> CommandResult {
             Ok(())
         }
         Ok(None) => {
-            msg.channel_id.send_message(&ctx, |m| {
-                m.content("Couldn't find a lichess user associated with your account. Please use the `account` command first.");
-                m
-            }).await?;
+            msg.channel_id
+                .send_message(&ctx, |m| {
+                    m.content(
+                        "Couldn't find a lichess user associated with your account. \
+                        Please use the `ohnomy account` command first.",
+                    );
+                    m
+                })
+                .await?;
             Ok(())
         }
         Err(why) => {

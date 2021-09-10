@@ -8,6 +8,8 @@ use thiserror::Error;
 pub type Pool = mobc::Pool<RedisConnectionManager>;
 pub type Connection = mobc::Connection<RedisConnectionManager>;
 
+const TTL: usize = 86400; // ttl of challenges
+
 #[derive(Error, Debug)]
 pub enum Error {
     #[error("client initialization error: {0}")]
@@ -42,6 +44,7 @@ pub async fn set(pool: &Pool, key: &str, value: &str) -> Result<()> {
     trace!("set() called");
     let mut conn = get_connection(&pool).await?;
 
+    conn.expire::<&str, usize>(key, TTL);
     conn.set(key, value).await?;
     Ok(())
 }

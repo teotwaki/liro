@@ -44,7 +44,7 @@ async fn unknown_command(ctx: &Context, msg: &Message, unknown_command_name: &st
     trace!("unknown_command() called");
 
     let message = format!(
-        "Could not understand command `{}`. Please see `help` for more information",
+        "Could not understand command `{}`. Please see `ohnomy help` for more information",
         unknown_command_name
     );
     match msg.channel_id.say(&ctx.http, message).await {

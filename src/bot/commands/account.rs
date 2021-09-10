@@ -130,12 +130,14 @@ async fn rating(ctx: &Context, msg: &Message) -> CommandResult {
 
                         if old_rating > rating {
                             format!(
-                                "Your average lichess rating went down from {} to {}",
+                                ":chart_with_downwards_trend: Your average lichess rating went \
+                                down from {} to {}",
                                 old_rating, rating
                             )
                         } else {
                             format!(
-                                "Your average lichess rating went up from {} to {}",
+                                ":chart_with_upwards_trend: Your average lichess rating went up \
+                                from {} to {}",
                                 old_rating, rating
                             )
                         }

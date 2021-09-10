@@ -34,7 +34,9 @@ impl Challenge {
     async fn save(&self, pool: &db::Pool) -> Result<()> {
         trace!("Challenge::save() called");
         let serialized = serde_json::to_string(self)?;
-        db::set(pool, &Challenge::key(self.id), &serialized).await?;
+        let key = &Challenge::key(self.id);
+        db::set(pool, key, &serialized).await?;
+        db::set_ttl(pool, key).await?;
 
         Ok(())
     }

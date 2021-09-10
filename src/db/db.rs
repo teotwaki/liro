@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use crate::config;
 use mobc_redis::{
     redis::{self, AsyncCommands, FromRedisValue},
@@ -7,6 +9,8 @@ use thiserror::Error;
 
 pub type Pool = mobc::Pool<RedisConnectionManager>;
 pub type Connection = mobc::Connection<RedisConnectionManager>;
+
+const REQUEST_LIFETIME: u64 = 86400; // ttl of a message in seconds.
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -28,7 +32,10 @@ pub async fn connect() -> Result<Pool> {
     let client = redis::Client::open(redis_uri).map_err(|e| Error::ClientError(e))?;
 
     let manager = RedisConnectionManager::new(client);
-    let pool = mobc::Pool::builder().max_open(20).build(manager);
+    let pool = mobc::Pool::builder()
+        .max_open(20)
+        .max_lifetime(Some(Duration::from_secs(REQUEST_LIFETIME)))
+        .build(manager);
 
     Ok(pool)
 }

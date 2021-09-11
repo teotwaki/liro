@@ -5,6 +5,8 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
+const TTL: usize = 86400;
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Challenge {
     id: u64,
@@ -34,7 +36,7 @@ impl Challenge {
     async fn save(&self, pool: &db::Pool) -> Result<()> {
         trace!("Challenge::save() called");
         let serialized = serde_json::to_string(self)?;
-        db::set(pool, &Challenge::key(self.id), &serialized).await?;
+        db::set_ttl(pool, &Challenge::key(self.id), &serialized, TTL).await?;
 
         Ok(())
     }

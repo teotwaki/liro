@@ -46,6 +46,14 @@ pub async fn set(pool: &Pool, key: &str, value: &str) -> Result<()> {
     Ok(())
 }
 
+pub async fn set_ttl(pool: &Pool, key: &str, value: &str, ttl: usize) -> Result<()> {
+    trace!("set_ttl() called");
+    let mut conn = get_connection(&pool).await?;
+
+    conn.set_ex(key, value, ttl).await?;
+    Ok(())
+}
+
 pub async fn get(pool: &Pool, key: &str) -> Result<Option<String>> {
     trace!("get() called");
     let mut conn = get_connection(&pool).await?;

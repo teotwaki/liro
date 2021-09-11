@@ -48,11 +48,11 @@ pub async fn set(pool: &Pool, key: &str, value: &str) -> Result<()> {
     Ok(())
 }
 
-pub async fn set_ttl(pool: &Pool, key: &str) -> Result<()> {
+pub async fn set_ttl(pool: &Pool, key: &str, value: &str) -> Result<()> {
     trace!("set_ttl() called");
     let mut conn = get_connection(&pool).await?;
 
-    conn.expire::<&str, usize>(key, TTL).await?;
+    conn.set_ex(key, value, TTL).await?;
     Ok(())
 }
 

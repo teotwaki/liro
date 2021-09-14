@@ -6,7 +6,7 @@ use crate::{
 };
 use askama::Template;
 use serde::Deserialize;
-use warp::{http::Uri, Reply};
+use warp::Reply;
 
 #[derive(Template)]
 #[template(path = "linked.html")]

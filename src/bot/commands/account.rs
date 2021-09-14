@@ -27,7 +27,7 @@ async fn account(ctx: &Context, msg: &Message) -> CommandResult {
 
     let whisper = format!(
         "Please connect your account using the following link: {}",
-        challenge.link()
+        challenge.lichess_url()
     );
 
     let message = match msg

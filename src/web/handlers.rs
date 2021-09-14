@@ -14,21 +14,6 @@ struct AccountLinkedTemplate<'a> {
     username: &'a str,
 }
 
-pub async fn connect_lichess_handler(challenge_id: u64, pool: Pool) -> Result<impl Reply> {
-    trace!("connect_lichess_handler() called");
-    let challenge = Challenge::find(&pool, challenge_id)
-        .await
-        .expect("Couldn't query database");
-
-    match challenge {
-        Some(challenge) => {
-            let uri: Uri = challenge.lichess_url().parse().unwrap();
-            Ok(warp::redirect::see_other(uri))
-        }
-        None => Err(warp::reject()),
-    }
-}
-
 #[derive(Deserialize, Debug)]
 pub struct CallbackParams {
     code: String,

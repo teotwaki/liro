@@ -1,5 +1,5 @@
 # Build stage
-FROM ekidd/rust-musl-builder:1.54.0 AS builder
+FROM ekidd/rust-musl-builder:1.55.0 AS builder
 
 RUN USER=root cargo new /home/rust/src/liro
 WORKDIR /home/rust/src/liro

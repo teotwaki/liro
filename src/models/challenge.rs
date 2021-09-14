@@ -1,6 +1,6 @@
 use crate::{
-    config,
     db::{self, Result},
+    lichess::auth,
 };
 use serde::{Deserialize, Serialize};
 use std::fmt;
@@ -49,11 +49,6 @@ impl Challenge {
         }
     }
 
-    pub fn link(&self) -> String {
-        trace!("Challenge::link() called");
-        format!("{}/connect/lichess/{}", config::hostname(), self.id)
-    }
-
     fn code_challenge(&self) -> String {
         trace!("Challenge::code_challenge() called");
         pkce::code_challenge(&self.code_verifier)
@@ -71,22 +66,7 @@ impl Challenge {
 
     pub fn lichess_url(&self) -> String {
         trace!("Challenge::lichess_url() called");
-        let redirect_uri = format!("{}/oauth/callback", config::hostname());
-        let url = format!(
-            "https://lichess.org/oauth\
-             ?response_type=code\
-             &redirect_uri={}\
-             &client_id={}\
-             &code_challenge_method=S256\
-             &code_challenge={}\
-             &state={}",
-            redirect_uri,
-            config::client_id(),
-            self.code_challenge(),
-            self.state()
-        );
-
-        url
+        auth::oauth_url(&self.code_challenge(), &self.state())
     }
 
     pub fn code_verifier(&self) -> String {

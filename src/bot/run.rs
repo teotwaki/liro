@@ -32,7 +32,7 @@ impl TypeMapKey for PoolContainer {
 pub struct GuildRoleManagerContainer;
 
 impl TypeMapKey for GuildRoleManagerContainer {
-    type Value = Arc<Mutex<GuildRoleManager>>;
+    type Value = GuildRoleManager;
 }
 
 #[group]

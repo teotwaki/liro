@@ -113,8 +113,8 @@ impl GuildRoleManager {
 mod tests {
     use super::*;
 
-    #[tokio::test]
-    async fn parse_rating_range_handles_exclusively_under() {
+    #[test]
+    fn parse_rating_range_handles_exclusively_under() {
         let grm = GuildRoleManager::new();
         let parsed = grm.parse_rating_range(0, "U1000").unwrap();
         let rr = RatingRange::new(0, None, Some(999));
@@ -122,8 +122,8 @@ mod tests {
         assert_eq!(parsed, rr);
     }
 
-    #[tokio::test]
-    async fn parse_rating_range_handles_upper_and_lowercase() {
+    #[test]
+    fn parse_rating_range_handles_upper_and_lowercase() {
         let grm = GuildRoleManager::new();
         let upper = grm.parse_rating_range(0, "U1000");
         let lower = grm.parse_rating_range(0, "u1000");
@@ -131,8 +131,8 @@ mod tests {
         assert_eq!(upper, lower);
     }
 
-    #[tokio::test]
-    async fn parse_rating_range_handles_exclusively_over() {
+    #[test]
+    fn parse_rating_range_handles_exclusively_over() {
         let grm = GuildRoleManager::new();
         let parsed = grm.parse_rating_range(0, "2200+").unwrap();
         let rr = RatingRange::new(0, Some(2200), None);
@@ -140,8 +140,8 @@ mod tests {
         assert_eq!(parsed, rr);
     }
 
-    #[tokio::test]
-    async fn parse_rating_range_handles_in_between() {
+    #[test]
+    fn parse_rating_range_handles_in_between() {
         let grm = GuildRoleManager::new();
         let parsed = grm.parse_rating_range(0, "1000-1099").unwrap();
         let rr = RatingRange::new(0, Some(1000), Some(1099));
@@ -149,8 +149,8 @@ mod tests {
         assert_eq!(parsed, rr);
     }
 
-    #[tokio::test]
-    async fn parse_rating_range_ignores_random_strings() {
+    #[test]
+    fn parse_rating_range_ignores_random_strings() {
         let grm = GuildRoleManager::new();
 
         assert!(grm.parse_rating_range(0, "foo").is_none()); // random
@@ -160,23 +160,23 @@ mod tests {
         assert!(grm.parse_rating_range(0, "100-20000").is_none()); // value too big (20000)
     }
 
-    #[tokio::test]
-    async fn find_rating_range_role_can_be_called_on_an_empty_manager() {
+    #[test]
+    fn find_rating_range_role_can_be_called_on_an_empty_manager() {
         let grm = GuildRoleManager::new();
 
         assert!(grm.find_rating_range_role(0, 0).is_none());
     }
 
-    #[tokio::test]
-    async fn adding_roles_to_a_nonexistent_guild_does_nothing() {
+    #[test]
+    fn adding_roles_to_a_nonexistent_guild_does_nothing() {
         let mut grm = GuildRoleManager::new();
         grm.add_rating_range(0, RatingRange::new(0, Some(10), Some(20)));
 
         assert!(grm.find_rating_range_role(0, 15).is_none());
     }
 
-    #[tokio::test]
-    async fn find_rating_range_returns_the_first_match() {
+    #[test]
+    fn find_rating_range_returns_the_first_match() {
         let mut grm = GuildRoleManager::new();
 
         grm.add_guild(0);
@@ -186,8 +186,8 @@ mod tests {
         assert_eq!(grm.find_rating_range_role(0, 15), Some(123));
     }
 
-    #[tokio::test]
-    async fn add_guild_resets_stored_roles() {
+    #[test]
+    fn add_guild_resets_stored_roles() {
         let mut grm = GuildRoleManager::new();
 
         grm.add_guild(0);
@@ -200,15 +200,15 @@ mod tests {
         assert!(grm.find_rating_range_role(0, 15).is_none());
     }
 
-    #[tokio::test]
-    async fn remove_role_can_be_called_on_an_empty_manager() {
+    #[test]
+    fn remove_role_can_be_called_on_an_empty_manager() {
         let mut grm = GuildRoleManager::new();
 
         grm.remove_role(0, 0);
     }
 
-    #[tokio::test]
-    async fn remove_role_correctly_removes_roles() {
+    #[test]
+    fn remove_role_correctly_removes_roles() {
         let mut grm = GuildRoleManager::new();
 
         grm.add_guild(0);
@@ -221,8 +221,8 @@ mod tests {
         assert!(grm.find_rating_range_role(0, 15).is_none());
     }
 
-    #[tokio::test]
-    async fn remove_role_only_removes_the_first_role_with_a_specific_id() {
+    #[test]
+    fn remove_role_only_removes_the_first_role_with_a_specific_id() {
         let mut grm = GuildRoleManager::new();
 
         grm.add_guild(0);
@@ -236,15 +236,15 @@ mod tests {
         assert_eq!(grm.find_rating_range_role(0, 15), Some(123));
     }
 
-    #[tokio::test]
-    async fn other_rating_range_roles_can_be_called_on_empty_manager() {
+    #[test]
+    fn other_rating_range_roles_can_be_called_on_empty_manager() {
         let grm = GuildRoleManager::new();
 
         assert_eq!(grm.other_rating_range_roles(0, 0).len(), 0);
     }
 
-    #[tokio::test]
-    async fn other_rating_range_roles_returns_other_roles() {
+    #[test]
+    fn other_rating_range_roles_returns_other_roles() {
         let mut grm = GuildRoleManager::new();
 
         grm.add_guild(0);
@@ -254,8 +254,8 @@ mod tests {
         assert_eq!(grm.other_rating_range_roles(0, 123), vec![345]);
     }
 
-    #[tokio::test]
-    async fn other_rating_range_filters_duplicates() {
+    #[test]
+    fn other_rating_range_filters_duplicates() {
         let mut grm = GuildRoleManager::new();
 
         grm.add_guild(0);

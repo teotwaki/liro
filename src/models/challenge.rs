@@ -1,7 +1,5 @@
-use crate::{
-    db::{self, Result},
-    lichess::auth,
-};
+use super::Result;
+use crate::{db, lichess::auth};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 

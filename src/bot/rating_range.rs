@@ -1,6 +1,6 @@
 use std::fmt;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct RatingRange {
     role_id: u64,
     min: Option<i16>,
@@ -52,5 +52,41 @@ impl fmt::Display for RatingRange {
             ),
             (None, None) => write!(f, "RatingRange<role_id={} min=None max=None>", self.role_id),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    // This test is for ranges like U1000
+    fn is_match_recognises_exclusively_under() {
+        let rr = RatingRange::new(0, None, Some(10));
+
+        assert!(rr.is_match(9));
+        assert!(!rr.is_match(10));
+        assert!(!rr.is_match(11));
+    }
+
+    #[test]
+    // This test is for ranges like 2200+
+    fn is_match_recognises_exclusively_over() {
+        let rr = RatingRange::new(0, Some(10), None);
+
+        assert!(!rr.is_match(9));
+        assert!(rr.is_match(10));
+        assert!(rr.is_match(11));
+    }
+
+    #[test]
+    // This test is for ranges like 1000-1099 or 1400-1699
+    fn is_match_recognises_in_between() {
+        let rr = RatingRange::new(0, Some(10), Some(19));
+
+        assert!(!rr.is_match(9));
+        assert!(rr.is_match(10));
+        assert!(rr.is_match(19));
+        assert!(!rr.is_match(20));
     }
 }

@@ -1,5 +1,5 @@
-mod db;
 mod error;
+mod pool;
 
-pub use db::*;
-pub use error::Result;
+pub use error::{Error, Result};
+pub use pool::*;

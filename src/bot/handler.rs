@@ -14,14 +14,14 @@ impl EventHandler for Handler {
         info!("Joining new guild {}", guild.name);
         let guild_id = *guild.id.as_u64();
         let data = ctx.data.read().await;
-        let role_manager = data.get::<GuildRoleManagerContainer>().unwrap();
-        let mut dg = role_manager.lock().await;
+        let mut role_manager = data.get::<GuildRoleManagerContainer>().unwrap().clone();
 
-        dg.add_guild(guild_id);
+        role_manager.add_guild(guild_id);
 
         for (role_id, role) in &guild.roles {
-            dg.parse_rating_range(*role_id.as_u64(), &role.name)
-                .map(|rr| dg.add_rating_range(guild_id, rr));
+            if let Some(rr) = role_manager.parse_rating_range(*role_id.as_u64(), &role.name) {
+                role_manager.add_rating_range(guild_id, rr);
+            }
         }
     }
 
@@ -32,21 +32,20 @@ impl EventHandler for Handler {
             role.name, role.id, guild_id
         );
         let data = ctx.data.read().await;
-        let role_manager = data.get::<GuildRoleManagerContainer>().unwrap();
-        let mut dg = role_manager.lock().await;
+        let mut role_manager = data.get::<GuildRoleManagerContainer>().unwrap().clone();
 
-        dg.parse_rating_range(*role.id.as_u64(), &role.name)
-            .map(|rr| dg.add_rating_range(*guild_id.as_u64(), rr));
+        if let Some(rr) = role_manager.parse_rating_range(*role.id.as_u64(), &role.name) {
+            role_manager.add_rating_range(*guild_id.as_u64(), rr);
+        }
     }
 
     async fn guild_role_delete(&self, ctx: Context, guild_id: GuildId, role_id: RoleId) {
         trace!("Handler::guild_role_delete() called");
         debug!("Removing role_id={} from guild_id={}", role_id, guild_id);
         let data = ctx.data.read().await;
-        let role_manager = data.get::<GuildRoleManagerContainer>().unwrap();
-        let mut dg = role_manager.lock().await;
+        let mut role_manager = data.get::<GuildRoleManagerContainer>().unwrap().clone();
 
-        dg.remove_role(*guild_id.as_u64(), *role_id.as_u64());
+        role_manager.remove_role(*guild_id.as_u64(), *role_id.as_u64());
     }
 
     // Set a handler to be called on the `ready` event. This is called when a

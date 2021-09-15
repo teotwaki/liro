@@ -70,9 +70,10 @@ async fn update_rating_roles(
     {
         let data = ctx.data.read().await;
         let role_manager = data.get::<GuildRoleManagerContainer>().unwrap().clone();
-        let dg = role_manager.lock().await.clone();
-        role_id = dg.find_rating_range_role(guild_id, rating).unwrap();
-        unneeded_roles = dg.other_rating_range_roles(guild_id, role_id);
+        role_id = role_manager
+            .find_rating_range_role(guild_id, rating)
+            .unwrap();
+        unneeded_roles = role_manager.other_rating_range_roles(guild_id, role_id);
     }
 
     debug!("Found role for rating level: {}", role_id);
@@ -119,7 +120,7 @@ async fn rating(ctx: &Context, msg: &Message) -> CommandResult {
     match User::find(&pool, discord_id).await {
         Ok(Some(mut user)) => {
             let old_rating = user.rating();
-            let rating = lichess::api::fetch_user_rating(&user.lichess_username()).await?;
+            let rating = lichess::api::fetch_user_rating(user.lichess_username()).await?;
             update_rating_roles(ctx, *msg.guild_id.unwrap().as_u64(), &msg.author, rating).await?;
             match old_rating {
                 Some(old_rating) => {

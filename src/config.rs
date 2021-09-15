@@ -45,3 +45,65 @@ pub fn client_id() -> String {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serial_test::serial;
+
+    #[serial]
+    #[test]
+    fn db_host_reads_env_var() {
+        env::set_var("DB_HOST", "foo");
+        assert_eq!(db_host(), Some("foo".into()));
+    }
+
+    #[serial]
+    #[test]
+    fn db_host_returns_none_when_env_var_doesnt_exist() {
+        env::remove_var("DB_HOST");
+        assert_eq!(db_host(), None);
+    }
+
+    #[serial]
+    #[test]
+    fn redis_uri_reads_env_var() {
+        env::set_var("DB_HOST", "foo");
+        assert_eq!(redis_uri(), "redis://foo/");
+    }
+
+    #[serial]
+    #[test]
+    fn redis_uri_uses_default_value() {
+        env::remove_var("DB_HOST");
+        assert_eq!(redis_uri(), "redis://127.0.0.1/");
+    }
+
+    #[serial]
+    #[test]
+    fn hostname_reads_env_var() {
+        env::set_var("HOSTNAME", "foo");
+        assert_eq!(hostname(), "foo");
+    }
+
+    #[serial]
+    #[test]
+    fn hostname_uses_default_value() {
+        env::remove_var("HOSTNAME");
+        assert_eq!(hostname(), "http://localhost:8000");
+    }
+
+    #[serial]
+    #[test]
+    fn client_id_reads_env_var() {
+        env::set_var("CLIENT_ID", "foo");
+        assert_eq!(client_id(), "foo");
+    }
+
+    #[serial]
+    #[test]
+    fn client_id_uses_default_value() {
+        env::remove_var("CLIENT_ID");
+        assert_eq!(client_id(), "liro-test-bot");
+    }
+}

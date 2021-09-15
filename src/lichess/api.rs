@@ -1,4 +1,4 @@
-use super::{Error::*, Result};
+use super::{Error, Result};
 use serde::Deserialize;
 use std::collections::HashMap;
 
@@ -27,7 +27,7 @@ pub async fn fetch_account(access_token: &str) -> Result<LichessUser> {
             &result.text().await.unwrap(),
         )?)
     } else {
-        Err(UnexpectedStatusError)
+        Err(Error::UnexpectedStatus)
     }
 }
 
@@ -76,6 +76,6 @@ pub async fn fetch_user_rating(user: &str) -> Result<i16> {
 
         Ok(profile.calculate_rating())
     } else {
-        Err(UnexpectedStatusError)
+        Err(Error::UnexpectedStatus)
     }
 }

@@ -19,9 +19,9 @@ impl EventHandler for Handler {
         role_manager.add_guild(guild_id);
 
         for (role_id, role) in &guild.roles {
-            role_manager
-                .parse_rating_range(*role_id.as_u64(), &role.name)
-                .map(|rr| role_manager.add_rating_range(guild_id, rr));
+            if let Some(rr) = role_manager.parse_rating_range(*role_id.as_u64(), &role.name) {
+                role_manager.add_rating_range(guild_id, rr);
+            }
         }
     }
 
@@ -34,9 +34,9 @@ impl EventHandler for Handler {
         let data = ctx.data.read().await;
         let mut role_manager = data.get::<GuildRoleManagerContainer>().unwrap().clone();
 
-        role_manager
-            .parse_rating_range(*role.id.as_u64(), &role.name)
-            .map(|rr| role_manager.add_rating_range(*guild_id.as_u64(), rr));
+        if let Some(rr) = role_manager.parse_rating_range(*role.id.as_u64(), &role.name) {
+            role_manager.add_rating_range(*guild_id.as_u64(), rr);
+        }
     }
 
     async fn guild_role_delete(&self, ctx: Context, guild_id: GuildId, role_id: RoleId) {

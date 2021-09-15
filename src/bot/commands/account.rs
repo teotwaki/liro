@@ -120,7 +120,7 @@ async fn rating(ctx: &Context, msg: &Message) -> CommandResult {
     match User::find(&pool, discord_id).await {
         Ok(Some(mut user)) => {
             let old_rating = user.rating();
-            let rating = lichess::api::fetch_user_rating(&user.lichess_username()).await?;
+            let rating = lichess::api::fetch_user_rating(user.lichess_username()).await?;
             update_rating_roles(ctx, *msg.guild_id.unwrap().as_u64(), &msg.author, rating).await?;
             match old_rating {
                 Some(old_rating) => {

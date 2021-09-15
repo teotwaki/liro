@@ -47,9 +47,8 @@ async fn unknown_command(ctx: &Context, msg: &Message, unknown_command_name: &st
         "Could not understand command `{}`. Please see `ohnomy help` for more information",
         unknown_command_name
     );
-    match msg.channel_id.say(&ctx.http, message).await {
-        Err(e) => error!("Unable to send response to channel: {}", e),
-        _ => {}
+    if let Err(e) = msg.channel_id.say(&ctx.http, message).await {
+        error!("Unable to send response to channel: {}", e);
     }
 }
 

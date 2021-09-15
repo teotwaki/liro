@@ -1,4 +1,4 @@
-use super::{Error::*, Result};
+use super::{Error, Result};
 use crate::config;
 use serde::Deserialize;
 
@@ -36,7 +36,7 @@ pub async fn fetch_access_token(code: &str, code_verifier: &str) -> Result<Strin
         let at: AccessToken = serde_json::from_str(&result.text().await.unwrap())?;
         Ok(at.get().to_string())
     } else {
-        Err(UnexpectedStatusError)
+        Err(Error::UnexpectedStatus)
     }
 }
 

@@ -7,13 +7,13 @@ use warp::{http::StatusCode, reply, reply::html, Rejection, Reply};
 #[derive(Error, Debug)]
 pub enum Error {
     #[error("error accessing database")]
-    DBAccessError,
+    DBAccess,
     #[error("authentication challenge not found")]
-    ChallengeNotFoundError,
+    ChallengeNotFound,
     #[error("templating error: {0}")]
-    TemplateError(#[from] askama::Error),
+    Template(#[from] askama::Error),
     #[error("lichess error: {0}")]
-    LichessError(#[from] lichess::Error),
+    Lichess(#[from] lichess::Error),
 }
 
 impl warp::reject::Reject for Error {}
@@ -34,12 +34,15 @@ pub async fn handle_rejection(err: Rejection) -> std::result::Result<impl Reply,
     if err.is_not_found() {
         code = StatusCode::NOT_FOUND;
         message = "Not Found";
-    } else if let Some(_) = err.find::<warp::filters::body::BodyDeserializeError>() {
+    } else if err
+        .find::<warp::filters::body::BodyDeserializeError>()
+        .is_some()
+    {
         code = StatusCode::BAD_REQUEST;
         message = "Invalid Body";
     } else if let Some(e) = err.find::<Error>() {
         match e {
-            Error::DBAccessError => {
+            Error::DBAccess => {
                 code = StatusCode::BAD_REQUEST;
                 message = "there was an error accessing the database";
             }
@@ -49,7 +52,7 @@ pub async fn handle_rejection(err: Rejection) -> std::result::Result<impl Reply,
                 message = "Internal Server Error";
             }
         }
-    } else if let Some(_) = err.find::<warp::reject::MethodNotAllowed>() {
+    } else if err.find::<warp::reject::MethodNotAllowed>().is_some() {
         code = StatusCode::METHOD_NOT_ALLOWED;
         message = "Method Not Allowed";
     } else {

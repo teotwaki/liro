@@ -1,4 +1,5 @@
-use crate::db::{self, Result};
+use super::Result;
+use crate::db;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 

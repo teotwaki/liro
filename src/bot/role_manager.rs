@@ -36,7 +36,7 @@ impl GuildRoleManager {
                 .as_str()
                 .parse::<i16>()
                 .ok()
-                .and_then(|max| Some(max - 1));
+                .map(|max| max - 1);
             Some(RatingRange::new(role_id, None, max))
         } else if let Some(captures) = self.over_re.captures(name) {
             let min = captures.name("min")?.as_str().parse().ok();
@@ -64,25 +64,19 @@ impl GuildRoleManager {
     /// does not panic or throw an error.
     pub fn add_rating_range(&mut self, guild_id: u64, rating: RatingRange) {
         trace!("GuildRoleManager::add_rating_range() called");
-        self.guild_rating_ranges
-            .lock()
-            .unwrap()
-            .get_mut(&guild_id)
-            .map(|grr| grr.push(rating));
+        if let Some(grr) = self.guild_rating_ranges.lock().unwrap().get_mut(&guild_id) {
+            grr.push(rating);
+        }
     }
 
     pub fn remove_role(&mut self, guild_id: u64, role_id: u64) {
         trace!("GuildRoleManager::remove_role() called");
-        self.guild_rating_ranges
-            .lock()
-            .unwrap()
-            .get_mut(&guild_id)
-            .map(|ranges| {
-                ranges
-                    .iter()
-                    .position(|r| r.role_id() == role_id)
-                    .map(|position| ranges.remove(position));
-            });
+        if let Some(ranges) = self.guild_rating_ranges.lock().unwrap().get_mut(&guild_id) {
+            ranges
+                .iter()
+                .position(|r| r.role_id() == role_id)
+                .map(|position| ranges.remove(position));
+        }
     }
 
     pub fn find_rating_range_role(&self, guild_id: u64, rating: i16) -> Option<u64> {

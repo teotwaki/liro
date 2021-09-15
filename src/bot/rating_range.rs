@@ -54,3 +54,39 @@ impl fmt::Display for RatingRange {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    // This test is for ranges like U1000
+    fn is_match_recognises_exclusively_under() {
+        let rr = RatingRange::new(0, None, Some(10));
+
+        assert!(rr.is_match(9));
+        assert!(!rr.is_match(10));
+        assert!(!rr.is_match(11));
+    }
+
+    #[test]
+    // This test is for ranges like 2200+
+    fn is_match_recognises_exclusively_over() {
+        let rr = RatingRange::new(0, Some(10), None);
+
+        assert!(!rr.is_match(9));
+        assert!(rr.is_match(10));
+        assert!(rr.is_match(11));
+    }
+
+    #[test]
+    // This test is for ranges like 1000-1099 or 1400-1699
+    fn is_match_recognises_in_between() {
+        let rr = RatingRange::new(0, Some(10), Some(19));
+
+        assert!(!rr.is_match(9));
+        assert!(rr.is_match(10));
+        assert!(rr.is_match(19));
+        assert!(!rr.is_match(20));
+    }
+}

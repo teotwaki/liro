@@ -33,4 +33,6 @@ in your server. Here is an example of how roles could be setup:
 
 - Handle sharding
 - Handle permission errors when roles are misconfigured
+- Implement per-TC roles
+- Add automated role creation
 - Implement application commands

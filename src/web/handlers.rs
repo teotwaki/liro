@@ -9,6 +9,10 @@ use serde::Deserialize;
 use warp::Reply;
 
 #[derive(Template)]
+#[template(path = "invited.html")]
+struct BotInvitedTemplate;
+
+#[derive(Template)]
 #[template(path = "linked.html")]
 struct AccountLinkedTemplate<'a> {
     username: &'a str,
@@ -18,6 +22,17 @@ struct AccountLinkedTemplate<'a> {
 pub struct CallbackParams {
     code: String,
     state: u64,
+}
+
+pub async fn bot_invited_handler() -> Result<impl Reply> {
+    trace!("bot_invited_handler() called");
+
+    let template = BotInvitedTemplate {};
+
+    match template.render() {
+        Ok(output) => Ok(warp::reply::html(output)),
+        Err(e) => Err(warp::reject::custom(Error::Template(e))),
+    }
 }
 
 pub async fn oauth_callback_handler(params: CallbackParams, pool: Pool) -> Result<impl Reply> {

@@ -36,6 +36,7 @@ pub async fn oauth_callback_handler(params: CallbackParams, pool: Pool) -> Resul
 
     let user = User::new(
         &pool,
+        challenge.guild_id(),
         challenge.discord_id(),
         lichess_user.get_username().to_string(),
     )

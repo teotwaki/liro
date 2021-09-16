@@ -12,6 +12,7 @@ use serenity::{
 #[command]
 async fn account(ctx: &Context, msg: &Message) -> CommandResult {
     trace!("account() called");
+    let guild_id = *msg.guild_id.unwrap().as_u64();
     let discord_id = *msg.author.id.as_u64();
 
     info!(
@@ -23,7 +24,7 @@ async fn account(ctx: &Context, msg: &Message) -> CommandResult {
         let data = ctx.data.read().await;
         pool = data.get::<PoolContainer>().unwrap().clone();
     }
-    let challenge = Challenge::new(&pool, discord_id).await?;
+    let challenge = Challenge::new(&pool, guild_id, discord_id).await?;
 
     let whisper = format!(
         "Please connect your account using the following link: {}",
@@ -105,6 +106,7 @@ async fn update_rating_roles(
 #[command]
 async fn rating(ctx: &Context, msg: &Message) -> CommandResult {
     trace!("rating() called");
+    let guild_id = *msg.guild_id.unwrap().as_u64();
     let discord_id = *msg.author.id.as_u64();
     debug!(
         "Handling rating command for user with discord_id={}",
@@ -117,7 +119,7 @@ async fn rating(ctx: &Context, msg: &Message) -> CommandResult {
         pool = data.get::<PoolContainer>().unwrap().clone();
     }
 
-    match User::find(&pool, discord_id).await {
+    match User::find(&pool, guild_id, discord_id).await {
         Ok(Some(mut user)) => {
             let old_rating = user.rating();
             let rating = lichess::api::fetch_user_rating(user.lichess_username()).await?;

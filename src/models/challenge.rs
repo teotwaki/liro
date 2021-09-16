@@ -8,6 +8,7 @@ const TTL: usize = 86400;
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Challenge {
     id: u64,
+    guild_id: u64,
     discord_id: u64,
     code_verifier: Vec<u8>,
 }
@@ -18,10 +19,11 @@ impl Challenge {
         format!("challenges:{}", id)
     }
 
-    pub async fn new(pool: &db::Pool, discord_id: u64) -> Result<Challenge> {
+    pub async fn new(pool: &db::Pool, guild_id: u64, discord_id: u64) -> Result<Challenge> {
         trace!("Challenge::new() called");
         let challenge = Self {
             id: rand::random(),
+            guild_id,
             discord_id,
             code_verifier: pkce::code_verifier(128),
         };
@@ -55,6 +57,11 @@ impl Challenge {
     fn state(&self) -> String {
         trace!("Challenge::state() called");
         format!("{}", self.id)
+    }
+
+    pub fn guild_id(&self) -> u64 {
+        trace!("Challenge::guild_id() called");
+        self.guild_id
     }
 
     pub fn discord_id(&self) -> u64 {

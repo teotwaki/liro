@@ -13,7 +13,9 @@ but also chesscom.
 
 ***Please note***: Liro is still being developped heavily. We do not provide
 uptime guarantees, and things related to role management might break in the
-near future.
+near future. In addition, you might have to re-invite the bot in the future to
+add/remove permissions due to the changes that Discord is making to
+permissions.
 
 You can now invite Liro to [join your discord][invite-link]!
 

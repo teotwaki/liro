@@ -28,3 +28,9 @@ and ordering are up to you, however the roles need to be under the `liro` role
 in your server. Here is an example of how roles could be setup:
 
 ![Screenshot of sample Discord rating role setup](.images/role-sample.png)
+
+# Todo
+
+- Handle sharding
+- Handle permission errors when roles are misconfigured
+- Implement application commands

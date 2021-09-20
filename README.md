@@ -29,10 +29,28 @@ in your server. Here is an example of how roles could be setup:
 
 ![Screenshot of sample Discord rating role setup](.images/role-sample.png)
 
+## Role format
+
+The format of the roles must end with one of:
+
+- blitz
+- bullet
+- classical
+- rapid
+
+Any other value is ignored. For the rating range, 3 formats are accepted:
+
+- U800 or U1000.
+- 900+ or 1800+.
+- 800-1099
+
+Any 3 or 4 numerical digit value is valid. The bot doesn't understand the
+roles, it just applies basic rules to guess which role to apply. If you create
+crazy overlapping roles, you will get duplicate matches.
+
 # Todo
 
 - Handle sharding
 - Handle permission errors when roles are misconfigured
-- Implement per-TC roles
 - Add automated role creation
 - Implement application commands

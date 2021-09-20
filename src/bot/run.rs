@@ -2,7 +2,7 @@ use super::{
     commands::{account::*, meta::*},
     role_manager::GuildRoleManager,
 };
-use crate::{bot::Handler, db::Pool};
+use crate::{bot::Handler, db::Pool, lichess};
 use serenity::{
     client::bridge::gateway::{GatewayIntents, ShardManager},
     framework::{
@@ -35,6 +35,12 @@ impl TypeMapKey for GuildRoleManagerContainer {
     type Value = GuildRoleManager;
 }
 
+pub struct LichessClientContainer;
+
+impl TypeMapKey for LichessClientContainer {
+    type Value = lichess::Client;
+}
+
 #[group]
 #[commands(ping, help, account, rating)]
 struct General;
@@ -52,7 +58,7 @@ async fn unknown_command(ctx: &Context, msg: &Message, unknown_command_name: &st
     }
 }
 
-pub async fn run(pool: &Pool) {
+pub async fn run(pool: &Pool, lichess: &lichess::Client) {
     trace!("run() called");
     let subscriber = FmtSubscriber::builder()
         .with_env_filter(EnvFilter::from_default_env())
@@ -109,6 +115,7 @@ pub async fn run(pool: &Pool) {
         data.insert::<ShardManagerContainer>(client.shard_manager.clone());
         data.insert::<PoolContainer>(pool.clone());
         data.insert::<GuildRoleManagerContainer>(GuildRoleManager::new());
+        data.insert::<LichessClientContainer>(lichess.clone());
     }
 
     let shard_manager = client.shard_manager.clone();

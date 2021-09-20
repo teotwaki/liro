@@ -1,4 +1,4 @@
-use super::run::GuildRoleManagerContainer;
+use super::run::RoleManagerContainer;
 use serenity::{
     async_trait,
     model::{gateway::Ready, guild::Guild, prelude::*},
@@ -14,13 +14,11 @@ impl EventHandler for Handler {
         info!("Joining new guild {}", guild.name);
         let guild_id = *guild.id.as_u64();
         let data = ctx.data.read().await;
-        let mut role_manager = data.get::<GuildRoleManagerContainer>().unwrap().clone();
-
-        role_manager.add_guild(guild_id);
+        let mut role_manager = data.get::<RoleManagerContainer>().unwrap().clone();
 
         for (role_id, role) in &guild.roles {
-            if let Some(rr) = role_manager.parse_rating_range(*role_id.as_u64(), &role.name) {
-                role_manager.add_rating_range(guild_id, rr);
+            if let Ok(rr) = role.name.parse() {
+                role_manager.add_rating_range(guild_id, *role_id.as_u64(), rr);
             }
         }
     }
@@ -32,10 +30,10 @@ impl EventHandler for Handler {
             role.name, role.id, guild_id
         );
         let data = ctx.data.read().await;
-        let mut role_manager = data.get::<GuildRoleManagerContainer>().unwrap().clone();
+        let mut role_manager = data.get::<RoleManagerContainer>().unwrap().clone();
 
-        if let Some(rr) = role_manager.parse_rating_range(*role.id.as_u64(), &role.name) {
-            role_manager.add_rating_range(*guild_id.as_u64(), rr);
+        if let Ok(rr) = role.name.parse() {
+            role_manager.add_rating_range(*guild_id.as_u64(), *role.id.as_u64(), rr);
         }
     }
 
@@ -43,7 +41,7 @@ impl EventHandler for Handler {
         trace!("Handler::guild_role_delete() called");
         debug!("Removing role_id={} from guild_id={}", role_id, guild_id);
         let data = ctx.data.read().await;
-        let mut role_manager = data.get::<GuildRoleManagerContainer>().unwrap().clone();
+        let mut role_manager = data.get::<RoleManagerContainer>().unwrap().clone();
 
         role_manager.remove_role(*guild_id.as_u64(), *role_id.as_u64());
     }

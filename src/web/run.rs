@@ -1,5 +1,5 @@
 use super::{error, handlers::*};
-use crate::db::Pool;
+use crate::{db::Pool, lichess};
 use std::convert::Infallible;
 use warp::Filter;
 
@@ -8,13 +8,21 @@ fn with_db(pool: Pool) -> impl Filter<Extract = (Pool,), Error = Infallible> + C
     warp::any().map(move || pool.clone())
 }
 
-pub async fn run(pool: &Pool) {
+fn with_lichess_client(
+    client: lichess::Client,
+) -> impl Filter<Extract = (lichess::Client,), Error = Infallible> + Clone {
+    trace!("with_lichess_client() called");
+    warp::any().map(move || client.clone())
+}
+
+pub async fn run(pool: &Pool, lichess: &lichess::Client) {
     trace!("run() called");
     let bot_invited_route = warp::path!("oauth").and_then(bot_invited_handler);
 
     let oauth_callback_route = warp::path!("oauth" / "callback")
         .and(warp::query::<CallbackParams>())
         .and(with_db(pool.clone()))
+        .and(with_lichess_client(lichess.clone()))
         .and_then(oauth_callback_handler);
 
     let assets_route = warp::path("assets").and(warp::fs::dir("assets"));

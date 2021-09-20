@@ -17,7 +17,11 @@ openssl-probe = "0.1"
 rand = "0.8"
 pkce = "0.1"
 
+chrono = "0.4"
 regex = "1.5"
+lazy_static = "1.4"
+strum = "0.21"
+strum_macros = "0.21"
 
 mobc = "0.7"
 mobc-redis = "0.7"

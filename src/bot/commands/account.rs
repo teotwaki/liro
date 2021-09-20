@@ -1,13 +1,16 @@
 use crate::{
-    bot::run::{GuildRoleManagerContainer, PoolContainer},
+    bot::run::{LichessClientContainer, PoolContainer, RoleManagerContainer},
     lichess,
     models::{Challenge, User},
 };
 use serenity::{
-    framework::standard::{macros::command, CommandResult},
+    framework::standard::{macros::command, CommandError, CommandResult},
     model::prelude::*,
     prelude::*,
 };
+use strum::IntoEnumIterator;
+
+const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[command]
 async fn account(ctx: &Context, msg: &Message) -> CommandResult {
@@ -58,49 +61,43 @@ async fn account(ctx: &Context, msg: &Message) -> CommandResult {
 
 async fn update_rating_roles(
     ctx: &Context,
-    guild_id: u64,
-    author: &serenity::model::prelude::User,
-    rating: i16,
-) -> CommandResult {
+    msg: &Message,
+    rating_roles: Vec<u64>,
+    removeable_roles: Vec<u64>,
+) -> Result<(Vec<u64>, Vec<u64>), CommandError> {
     trace!("update_rating_roles() called");
-    let discord_id = *author.id.as_u64();
+    let discord_id = *msg.author.id.as_u64();
+    let guild_id = *msg.guild_id.unwrap().as_u64();
     let member = ctx.http.get_member(guild_id, discord_id).await?;
 
-    let role_id;
-    let unneeded_roles;
-    {
-        let data = ctx.data.read().await;
-        let role_manager = data.get::<GuildRoleManagerContainer>().unwrap().clone();
-        role_id = role_manager
-            .find_rating_range_role(guild_id, rating)
-            .unwrap();
-        unneeded_roles = role_manager.other_rating_range_roles(guild_id, role_id);
-    }
+    let mut added = vec![];
+    let mut removed = vec![];
 
-    debug!("Found role for rating level: {}", role_id);
-
-    if member.roles.contains(&RoleId(role_id)) {
-        debug!("User already has correct role");
-    } else {
-        debug!("User is missing the role, adding");
-        ctx.http
-            .add_member_role(guild_id, discord_id, role_id)
-            .await
-            .unwrap();
-        debug!("User role added");
-    }
-
-    for role_id in unneeded_roles {
+    for role_id in rating_roles {
         if member.roles.contains(&RoleId(role_id)) {
-            debug!("User has extra role that should be removed");
+            debug!("User already has role_id={}", role_id)
+        } else {
+            debug!("User is missing role_id={}", role_id);
             ctx.http
-                .remove_member_role(guild_id, discord_id, role_id)
+                .add_member_role(guild_id, discord_id, role_id)
                 .await?;
-            debug!("Role removed");
+            added.push(role_id);
+            debug!("Added role_id={} to discord_id={}", role_id, discord_id);
         }
     }
 
-    Ok(())
+    for role_id in removeable_roles {
+        if member.roles.contains(&RoleId(role_id)) {
+            debug!("User has extra role_id={} that should be removed", role_id);
+            ctx.http
+                .remove_member_role(guild_id, discord_id, role_id)
+                .await?;
+            removed.push(role_id);
+            debug!("Removed role_id={} from discord_id={}", role_id, discord_id);
+        }
+    }
+
+    Ok((added, removed))
 }
 
 #[command]
@@ -113,60 +110,88 @@ async fn rating(ctx: &Context, msg: &Message) -> CommandResult {
         discord_id
     );
 
+    let lichess;
     let pool;
+    let rm;
     {
         let data = ctx.data.read().await;
+
+        lichess = data.get::<LichessClientContainer>().unwrap().clone();
         pool = data.get::<PoolContainer>().unwrap().clone();
+        rm = data.get::<RoleManagerContainer>().unwrap().clone();
     }
 
     match User::find(&pool, guild_id, discord_id).await {
         Ok(Some(mut user)) => {
-            let old_rating = user.rating();
-            let rating = lichess::api::fetch_user_rating(user.lichess_username()).await?;
-            update_rating_roles(ctx, *msg.guild_id.unwrap().as_u64(), &msg.author, rating).await?;
-            match old_rating {
-                Some(old_rating) => {
-                    let response = if old_rating == rating {
-                        format!("Your average lichess rating is still {}", rating)
-                    } else {
-                        user.update_rating(&pool, rating).await?;
+            let old_ratings = user.get_ratings().clone();
+            let ratings = user.update_ratings(&pool, &lichess).await?.clone();
 
-                        if old_rating > rating {
-                            format!(
-                                ":chart_with_downwards_trend: Your average lichess rating went \
-                                down from {} to {}",
-                                old_rating, rating
-                            )
-                        } else {
-                            format!(
-                                ":chart_with_upwards_trend: Your average lichess rating went up \
-                                from {} to {}",
-                                old_rating, rating
-                            )
+            let rating_roles = rm.find_rating_range_roles(guild_id, &ratings);
+            let removeable_roles = rm.other_rating_range_roles(guild_id, &rating_roles);
+            let (added, removed) =
+                update_rating_roles(ctx, msg, rating_roles, removeable_roles).await?;
+
+            msg.channel_id
+                .send_message(&ctx, |m| {
+                    m.add_embed(|e| {
+                        for format in lichess::Format::iter() {
+                            let old_rating = old_ratings.get(&format);
+                            let new_rating = ratings.get(&format);
+                            let description = match (old_rating, new_rating) {
+                                (Some(old_rating), Some(new_rating))
+                                    if old_rating == new_rating =>
+                                {
+                                    old_rating.to_string()
+                                }
+                                (Some(old_rating), Some(new_rating)) if old_rating < new_rating => {
+                                    format!(
+                                        ":chart_with_upwards_trend: {} -> {}",
+                                        old_rating, new_rating
+                                    )
+                                }
+                                (Some(old_rating), Some(new_rating)) if old_rating > new_rating => {
+                                    format!(
+                                        ":chart_with_downwards_trend: {} -> {}",
+                                        old_rating, new_rating
+                                    )
+                                }
+                                (None, Some(new_rating)) => {
+                                    format!(":new: {}", new_rating)
+                                }
+                                (Some(old_rating), None) => {
+                                    format!(":crying_cat_face: ~~{}~~", old_rating)
+                                }
+                                _ => "Unrated (or provisional)".to_string(),
+                            };
+                            e.field(format.to_string(), description, true);
                         }
-                    };
-                    msg.channel_id
-                        .send_message(&ctx, |m| {
-                            m.content(response);
-                            m
-                        })
-                        .await?;
-                }
-                None => {
-                    user.update_rating(&pool, rating).await?;
-                    msg.channel_id
-                        .send_message(&ctx, |m| {
-                            m.content(format!(
-                                "Welcome to the liro gang! Your average lichess rating is {}",
-                                rating
-                            ));
-                            m
-                        })
-                        .await?;
-                }
-            }
 
-            Ok(())
+                        if !added.is_empty() {
+                            let role_names = rm.get_rating_role_names(guild_id, &added);
+                            e.field("Roles added", role_names.join(", "), false);
+                        }
+
+                        if !removed.is_empty() {
+                            let role_names = rm.get_rating_role_names(guild_id, &removed);
+                            e.field("Roles removed", role_names.join(", "), false);
+                        }
+
+                        e.description(format!(
+                            "Ratings for [{}](https://lichess.org/@/{}) from \
+                            [lichess](https://lichess.org).",
+                            user.get_lichess_username(),
+                            user.get_lichess_username()
+                        ))
+                        .footer(|f| {
+                            f.text(format!(
+                                "Liro version {}. Please note that this bot only cares about the \
+                                four rating formats shown above. Provisional ratings are ignored.",
+                                VERSION
+                            ))
+                        })
+                    })
+                })
+                .await?;
         }
         Ok(None) => {
             msg.channel_id
@@ -178,11 +203,17 @@ async fn rating(ctx: &Context, msg: &Message) -> CommandResult {
                     m
                 })
                 .await?;
-            Ok(())
         }
         Err(why) => {
             error!("Unable to query database: {}", why);
-            Ok(())
+            msg.channel_id
+                .send_message(&ctx, |m| {
+                    m.content("Internal bot error. @teotwaki, I'm scared.");
+                    m
+                })
+                .await?;
         }
-    }
+    };
+
+    Ok(())
 }

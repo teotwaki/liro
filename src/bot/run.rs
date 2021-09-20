@@ -1,6 +1,6 @@
 use super::{
     commands::{account::*, meta::*},
-    role_manager::GuildRoleManager,
+    role_manager::RoleManager,
 };
 use crate::{bot::Handler, db::Pool, lichess};
 use serenity::{
@@ -29,10 +29,10 @@ impl TypeMapKey for PoolContainer {
     type Value = Pool;
 }
 
-pub struct GuildRoleManagerContainer;
+pub struct RoleManagerContainer;
 
-impl TypeMapKey for GuildRoleManagerContainer {
-    type Value = GuildRoleManager;
+impl TypeMapKey for RoleManagerContainer {
+    type Value = RoleManager;
 }
 
 pub struct LichessClientContainer;
@@ -114,7 +114,7 @@ pub async fn run(pool: &Pool, lichess: &lichess::Client) {
         let mut data = client.data.write().await;
         data.insert::<ShardManagerContainer>(client.shard_manager.clone());
         data.insert::<PoolContainer>(pool.clone());
-        data.insert::<GuildRoleManagerContainer>(GuildRoleManager::new());
+        data.insert::<RoleManagerContainer>(RoleManager::new());
         data.insert::<LichessClientContainer>(lichess.clone());
     }
 

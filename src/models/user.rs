@@ -1,14 +1,17 @@
 use super::Result;
-use crate::db;
+use crate::{
+    db,
+    lichess::{self, Format},
+};
 use serde::{Deserialize, Serialize};
-use std::fmt;
+use std::{collections::HashMap, fmt};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct User {
     guild_id: u64,
     discord_id: u64,
     lichess_username: String,
-    rating: Option<i16>,
+    ratings: HashMap<Format, i16>,
 }
 
 fn key(guild_id: u64, discord_id: u64) -> String {
@@ -33,7 +36,7 @@ impl User {
             guild_id,
             discord_id,
             lichess_username,
-            rating: None,
+            ratings: Default::default(),
         };
 
         user.save(pool).await?;
@@ -67,44 +70,40 @@ impl User {
         }
     }
 
-    pub fn lichess_username(&self) -> &str {
+    pub fn get_lichess_username(&self) -> &str {
         trace!("User::lichess_username() called");
         &self.lichess_username
     }
 
-    pub async fn update_rating(&mut self, pool: &db::Pool, rating: i16) -> Result<()> {
-        trace!("User::update_rating() called");
-        debug!(
-            "Updating rating discord_id={} old_rating={:?} new_rating={}",
-            self.discord_id, self.rating, rating
-        );
+    pub async fn update_ratings(
+        &mut self,
+        pool: &db::Pool,
+        lichess: &lichess::Client,
+    ) -> Result<&HashMap<Format, i16>> {
+        trace!("User::update_ratings() called");
 
-        self.rating = Some(rating);
+        self.ratings = lichess
+            .fetch_user_ratings(self.get_lichess_username())
+            .await?;
+
         self.save(pool).await?;
 
-        Ok(())
+        Ok(&self.ratings)
     }
 
-    pub fn rating(&self) -> Option<i16> {
-        trace!("User::rating() called");
-        self.rating
+    pub fn get_ratings(&self) -> &HashMap<Format, i16> {
+        trace!("User::get_ratings() called");
+        &self.ratings
     }
 }
 
 impl fmt::Display for User {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         trace!("User::fmt() called");
-        match self.rating {
-            Some(rating) => write!(
-                f,
-                "User<discord_id={}, lichess_username={} rating={}>",
-                self.discord_id, self.lichess_username, rating
-            ),
-            None => write!(
-                f,
-                "User<discord_id={}, lichess_username={} rating=None>",
-                self.discord_id, self.lichess_username
-            ),
-        }
+        write!(
+            f,
+            "User<discord_id={} lichess_username={} ratings={:?}>",
+            self.discord_id, self.lichess_username, self.ratings
+        )
     }
 }

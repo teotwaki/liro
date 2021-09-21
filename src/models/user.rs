@@ -95,6 +95,14 @@ impl User {
         trace!("User::get_ratings() called");
         &self.ratings
     }
+
+    pub async fn count(pool: &db::Pool) -> Result<usize> {
+        trace!("User::count() called");
+
+        let keys = db::keys(pool, "guilds:*:users:*").await?;
+
+        Ok(keys.len())
+    }
 }
 
 impl fmt::Display for User {

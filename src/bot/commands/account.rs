@@ -100,14 +100,7 @@ async fn account(ctx: &Context, msg: &Message) -> CommandResult {
         challenge.lichess_url()
     );
 
-    let message = match msg
-        .author
-        .dm(&ctx, |m| {
-            m.content(whisper);
-            m
-        })
-        .await
-    {
+    let message = match msg.author.dm(&ctx, |m| m.content(whisper)).await {
         Ok(_) => "Please check your DMs :)",
         Err(e) => {
             warn!("Failed to send DM to user {}: {}", discord_id, e);
@@ -116,10 +109,7 @@ async fn account(ctx: &Context, msg: &Message) -> CommandResult {
     };
 
     msg.channel_id
-        .send_message(&ctx, |m| {
-            m.content(message);
-            m
-        })
+        .send_message(&ctx, |m| m.content(message))
         .await?;
 
     Ok(())
@@ -278,8 +268,7 @@ async fn rating(ctx: &Context, msg: &Message) -> CommandResult {
                     m.content(
                         "Couldn't find a lichess user associated with your account. \
                         Please use the `ohnomy account` command first.",
-                    );
-                    m
+                    )
                 })
                 .await?;
         }
@@ -287,8 +276,7 @@ async fn rating(ctx: &Context, msg: &Message) -> CommandResult {
             error!("Unable to query database: {}", why);
             msg.channel_id
                 .send_message(&ctx, |m| {
-                    m.content("Internal bot error. @teotwaki, I'm scared.");
-                    m
+                    m.content("Internal bot error. @teotwaki, I'm scared.")
                 })
                 .await?;
         }

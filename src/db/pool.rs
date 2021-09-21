@@ -50,3 +50,12 @@ pub async fn get(pool: &Pool, key: &str) -> Result<Option<String>> {
         _ => Some(FromRedisValue::from_redis_value(&value).map_err(Error::Type)?),
     })
 }
+
+pub async fn keys(pool: &Pool, prefix: &str) -> Result<Vec<String>> {
+    trace!("keys() called");
+    let mut conn = get_connection(pool).await?;
+
+    let value = conn.keys(prefix).await?;
+
+    Ok(FromRedisValue::from_redis_value(&value).map_err(Error::Type)?)
+}

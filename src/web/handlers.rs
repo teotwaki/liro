@@ -2,7 +2,7 @@ use super::error::{Error, Result};
 use crate::{
     db::Pool,
     lichess,
-    models::{Challenge, User},
+    models::{Challenge, Guild, User},
 };
 use askama::Template;
 use serde::Deserialize;
@@ -16,6 +16,14 @@ struct BotInvitedTemplate;
 #[template(path = "linked.html")]
 struct AccountLinkedTemplate<'a> {
     username: &'a str,
+}
+
+#[derive(Template)]
+#[template(path = "dashboard.html")]
+struct DashboardTemplate {
+    guilds: usize,
+    users: usize,
+    challenges: usize,
 }
 
 #[derive(Deserialize, Debug)]
@@ -67,6 +75,27 @@ pub async fn oauth_callback_handler(
 
     let template = AccountLinkedTemplate {
         username: user.get_lichess_username(),
+    };
+
+    match template.render() {
+        Ok(output) => Ok(warp::reply::html(output)),
+        Err(e) => Err(warp::reject::custom(Error::Template(e))),
+    }
+}
+
+pub async fn dashboard_handler(pool: Pool) -> Result<impl Reply> {
+    trace!("dashboard_handler() called");
+
+    let (guilds, users, challenges) = tokio::join!(
+        Guild::count(&pool),
+        User::count(&pool),
+        Challenge::count(&pool)
+    );
+
+    let template = DashboardTemplate {
+        guilds: guilds.map_err(|_| Error::DBAccess)?,
+        users: users.map_err(|_| Error::DBAccess)?,
+        challenges: challenges.map_err(|_| Error::DBAccess)?,
     };
 
     match template.render() {

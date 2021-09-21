@@ -81,6 +81,14 @@ impl Challenge {
             Err(e) => panic!("Invalid UTF-8 sequence: {}", e),
         }
     }
+
+    pub async fn count(pool: &db::Pool) -> Result<usize> {
+        trace!("Challenge::count() called");
+
+        let keys = db::keys(pool, "challenges:*").await?;
+
+        Ok(keys.len())
+    }
 }
 
 impl fmt::Display for Challenge {

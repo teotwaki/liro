@@ -1,0 +1,37 @@
+/* light shade: #f9f9f9
+ * dark shade: #353435
+ * brand colour: #9aa6a6
+ * light accent: #7c7b7b
+ * dark accent: #7c7474
+ */
+
+body {
+  background-color: #f9f9f9;
+  color: #353435;
+}
+
+.content-wrapper {
+  margin: 0 auto;
+  max-width: 980px;
+}
+
+.widget {
+  box-shadow: 0 3px 10px #7c7474;
+  background-color: #fff;
+  margin: 1em;
+  padding: 1em;
+}
+
+.widget .title {
+  text-transform: uppercase;
+  font-weight: 900;
+  font-size: 80%;
+  margin: 0;
+}
+
+.widget .content {
+  text-align: center;
+  font-weight: 200;
+  font-size: 200%;
+  margin: 0.2em 0 0 0;
+}

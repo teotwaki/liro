@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Liro dashboard</title>
+    <link rel="stylesheet" href="https://unpkg.com/purecss@2.0.6/build/pure-min.css" integrity="sha384-Uu6IeWbM+gzNVXJcM9XV3SohHtmWE+3VGi496jvgX1jyvDTXfdK+rfZc8C1Aehk5" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://unpkg.com/purecss@2.0.6/build/grids-responsive-min.css">
+    <link rel="stylesheet" href="/assets/css/dashboard.css">
+  </head>
+  <body>
+    <div class="content-wrapper">
+      <div class="pure-g" id="container">
+        <div class="pure-u-1-2 pure-u-md-1-3">
+          <div class="widget">
+            <p class="title">Guilds</p>
+            <p class="content">{{ guilds }}</p>
+          </div>
+        </div>
+        <div class="pure-u-1-2 pure-u-md-1-3">
+          <div class="widget">
+            <p class="title">Registered users</p>
+            <p class="content">{{ users }}</p>
+          </div>
+        </div>
+        <div class="pure-u-1-2 pure-u-md-1-3">
+          <div class="widget">
+            <p class="title">Pending registrations</p>
+            <p class="content">{{ challenges }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

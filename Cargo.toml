@@ -25,7 +25,6 @@ strum_macros = "0.21"
 
 mobc = "0.7"
 mobc-redis = "0.7"
-futures = "0.3"
 
 warp = "0.3"
 askama = "0.10"

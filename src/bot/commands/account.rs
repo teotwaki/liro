@@ -3,7 +3,6 @@ use crate::{
     lichess,
     models::{Challenge, User},
 };
-use futures::future;
 use serenity::{
     framework::standard::{macros::command, CommandError, CommandResult},
     model::prelude::*,
@@ -34,19 +33,31 @@ async fn gdpr(ctx: &Context, msg: &Message) -> CommandResult {
 
     match User::find(&pool, guild_id, discord_id).await {
         Ok(Some(mut user)) => {
-            let member = ctx.http.get_member(guild_id, discord_id).await?;
+            let member = ctx
+                .http
+                .get_member(guild_id, discord_id)
+                .await
+                .map_err(|e| {
+                    error!(
+                        "Could not retrieve user information for discord_id={} in guild_id={}: {}",
+                        discord_id, guild_id, e
+                    );
+                    e
+                })?;
             let role_ids = rm.other_rating_range_roles(guild_id, &[]);
-            let mut futures = vec![];
 
             for role_id in role_ids {
                 if member.roles.contains(&RoleId(role_id)) {
-                    futures.push(ctx.http.remove_member_role(guild_id, discord_id, role_id));
-                }
-            }
-
-            for res in future::join_all(futures).await {
-                if let Err(e) = res {
-                    error!("Couldn't remove role from discord_id={}: {}", discord_id, e);
+                    ctx.http
+                        .remove_member_role(guild_id, discord_id, role_id)
+                        .await
+                        .map_err(|e| {
+                            error!(
+                                "Could not remove role_id={} from discord_id={}: {}",
+                                role_id, discord_id, e
+                            );
+                            e
+                        })?;
                 }
             }
 
@@ -124,45 +135,56 @@ async fn update_rating_roles(
     trace!("update_rating_roles() called");
     let discord_id = *msg.author.id.as_u64();
     let guild_id = *msg.guild_id.unwrap().as_u64();
-    let member = ctx.http.get_member(guild_id, discord_id).await?;
+    let member = ctx
+        .http
+        .get_member(guild_id, discord_id)
+        .await
+        .map_err(|e| {
+            error!(
+                "Could not retrieve user information for discord_id={} in guild_id={}: {}",
+                discord_id, guild_id, e
+            );
+            e
+        })?;
 
     let mut added = vec![];
-    let mut add_futures = vec![];
     let mut removed = vec![];
-    let mut rem_futures = vec![];
 
     for role_id in rating_roles {
         if member.roles.contains(&RoleId(role_id)) {
             debug!("User already has role_id={}", role_id)
         } else {
             debug!("User is missing role_id={}", role_id);
-            add_futures.push(ctx.http.add_member_role(guild_id, discord_id, role_id));
+            ctx.http
+                .add_member_role(guild_id, discord_id, role_id)
+                .await
+                .map_err(|e| {
+                    error!(
+                        "Could not add role_id={} to discord_id={}: {}",
+                        role_id, discord_id, e
+                    );
+                    e
+                })?;
             added.push(role_id);
             debug!("Added role_id={} to discord_id={}", role_id, discord_id);
-        }
-    }
-
-    for res in future::join_all(add_futures).await {
-        if let Err(e) = res {
-            error!("Failed to add role to discord_id={}: {}", discord_id, e);
         }
     }
 
     for role_id in removeable_roles {
         if member.roles.contains(&RoleId(role_id)) {
             debug!("User has extra role_id={} that should be removed", role_id);
-            rem_futures.push(ctx.http.remove_member_role(guild_id, discord_id, role_id));
+            ctx.http
+                .remove_member_role(guild_id, discord_id, role_id)
+                .await
+                .map_err(|e| {
+                    error!(
+                        "Could not remove role_id={} from discord_id={}: {}",
+                        role_id, discord_id, e
+                    );
+                    e
+                })?;
             removed.push(role_id);
             debug!("Removed role_id={} from discord_id={}", role_id, discord_id);
-        }
-    }
-
-    for res in future::join_all(rem_futures).await {
-        if let Err(e) = res {
-            error!(
-                "Failed to remove role from discord_id={}: {}",
-                discord_id, e
-            );
         }
     }
 

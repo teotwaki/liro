@@ -11,13 +11,20 @@ pub struct Handler;
 impl EventHandler for Handler {
     async fn guild_create(&self, ctx: Context, guild: Guild) {
         trace!("Handler::guild_create() called");
-        info!("Joining new guild {}", guild.name);
         let guild_id = *guild.id.as_u64();
+        info!("Joining new guild {} (guild_id={})", guild.name, guild_id);
         let data = ctx.data.read().await;
         let mut role_manager = data.get::<RoleManagerContainer>().unwrap().clone();
 
         for (role_id, role) in &guild.roles {
             if let Ok(rr) = role.name.parse() {
+                info!(
+                    "Adding new role {} (role_id={}) to guild {} (guild_id={})",
+                    role.name,
+                    *role_id.as_u64(),
+                    guild.name,
+                    guild_id
+                );
                 role_manager.add_rating_range(guild_id, *role_id.as_u64(), rr);
             }
         }
@@ -26,7 +33,7 @@ impl EventHandler for Handler {
     async fn guild_role_create(&self, ctx: Context, guild_id: GuildId, role: Role) {
         trace!("Handler::guild_role_create() called");
         info!(
-            "Adding role {} (role_id={}) in guild_id{}",
+            "Adding role {} (role_id={}) to guild_id={}",
             role.name, role.id, guild_id
         );
         let data = ctx.data.read().await;
@@ -37,9 +44,28 @@ impl EventHandler for Handler {
         }
     }
 
+    async fn guild_role_update(&self, ctx: Context, guild_id: GuildId, role: Role) {
+        trace!("Handler::guild_role_update() called");
+        let guild_id = *guild_id.as_u64();
+        let role_id = *role.id.as_u64();
+
+        let data = ctx.data.read().await;
+        let mut role_manager = data.get::<RoleManagerContainer>().unwrap().clone();
+
+        role_manager.remove_role(guild_id, role_id);
+
+        if let Ok(rr) = role.name.parse() {
+            info!(
+                "Updating role {} (role_id={}) in guild_id={}",
+                role.name, role_id, guild_id
+            );
+            role_manager.add_rating_range(guild_id, role_id, rr);
+        }
+    }
+
     async fn guild_role_delete(&self, ctx: Context, guild_id: GuildId, role_id: RoleId) {
         trace!("Handler::guild_role_delete() called");
-        debug!("Removing role_id={} from guild_id={}", role_id, guild_id);
+        info!("Removing role_id={} from guild_id={}", role_id, guild_id);
         let data = ctx.data.read().await;
         let mut role_manager = data.get::<RoleManagerContainer>().unwrap().clone();
 

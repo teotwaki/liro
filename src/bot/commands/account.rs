@@ -3,6 +3,7 @@ use crate::{
     lichess,
     models::{Challenge, User},
 };
+use futures::future;
 use serenity::{
     framework::standard::{macros::command, CommandError, CommandResult},
     model::prelude::*,
@@ -11,6 +12,71 @@ use serenity::{
 use strum::IntoEnumIterator;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
+
+#[command]
+async fn gdpr(ctx: &Context, msg: &Message) -> CommandResult {
+    trace!("gdpr() called");
+    let guild_id = *msg.guild_id.unwrap().as_u64();
+    let discord_id = *msg.author.id.as_u64();
+
+    info!(
+        "Deleting data for discord_id={} in guild_id={}",
+        discord_id, guild_id,
+    );
+
+    let pool;
+    let rm;
+    {
+        let data = ctx.data.read().await;
+        pool = data.get::<PoolContainer>().unwrap().clone();
+        rm = data.get::<RoleManagerContainer>().unwrap().clone();
+    }
+
+    match User::find(&pool, guild_id, discord_id).await {
+        Ok(Some(mut user)) => {
+            let member = ctx.http.get_member(guild_id, discord_id).await?;
+            let role_ids = rm.other_rating_range_roles(guild_id, &[]);
+            let mut futures = vec![];
+
+            for role_id in role_ids {
+                if member.roles.contains(&RoleId(role_id)) {
+                    futures.push(ctx.http.remove_member_role(guild_id, discord_id, role_id));
+                }
+            }
+
+            for res in future::join_all(futures).await {
+                if let Err(e) = res {
+                    error!("Couldn't remove role from discord_id={}: {}", discord_id, e);
+                }
+            }
+
+            user.delete(&pool).await?;
+
+            msg.channel_id
+                .send_message(&ctx, |m| {
+                    m.content("User information deleted. Toodles! :wave:")
+                })
+                .await?;
+        }
+        Ok(None) => {
+            msg.channel_id
+                .send_message(&ctx, |m| {
+                    m.content("I don't see any data to delete:question:")
+                })
+                .await?;
+        }
+        Err(why) => {
+            error!("Unable to query database: {}", why);
+            msg.channel_id
+                .send_message(&ctx, |m| {
+                    m.content("Internal bot error. @teotwaki, I'm scared.")
+                })
+                .await?;
+        }
+    }
+
+    Ok(())
+}
 
 #[command]
 async fn account(ctx: &Context, msg: &Message) -> CommandResult {
@@ -34,14 +100,7 @@ async fn account(ctx: &Context, msg: &Message) -> CommandResult {
         challenge.lichess_url()
     );
 
-    let message = match msg
-        .author
-        .dm(&ctx, |m| {
-            m.content(whisper);
-            m
-        })
-        .await
-    {
+    let message = match msg.author.dm(&ctx, |m| m.content(whisper)).await {
         Ok(_) => "Please check your DMs :)",
         Err(e) => {
             warn!("Failed to send DM to user {}: {}", discord_id, e);
@@ -50,10 +109,7 @@ async fn account(ctx: &Context, msg: &Message) -> CommandResult {
     };
 
     msg.channel_id
-        .send_message(&ctx, |m| {
-            m.content(message);
-            m
-        })
+        .send_message(&ctx, |m| m.content(message))
         .await?;
 
     Ok(())
@@ -71,29 +127,42 @@ async fn update_rating_roles(
     let member = ctx.http.get_member(guild_id, discord_id).await?;
 
     let mut added = vec![];
+    let mut add_futures = vec![];
     let mut removed = vec![];
+    let mut rem_futures = vec![];
 
     for role_id in rating_roles {
         if member.roles.contains(&RoleId(role_id)) {
             debug!("User already has role_id={}", role_id)
         } else {
             debug!("User is missing role_id={}", role_id);
-            ctx.http
-                .add_member_role(guild_id, discord_id, role_id)
-                .await?;
+            add_futures.push(ctx.http.add_member_role(guild_id, discord_id, role_id));
             added.push(role_id);
             debug!("Added role_id={} to discord_id={}", role_id, discord_id);
+        }
+    }
+
+    for res in future::join_all(add_futures).await {
+        if let Err(e) = res {
+            error!("Failed to add role to discord_id={}: {}", discord_id, e);
         }
     }
 
     for role_id in removeable_roles {
         if member.roles.contains(&RoleId(role_id)) {
             debug!("User has extra role_id={} that should be removed", role_id);
-            ctx.http
-                .remove_member_role(guild_id, discord_id, role_id)
-                .await?;
+            rem_futures.push(ctx.http.remove_member_role(guild_id, discord_id, role_id));
             removed.push(role_id);
             debug!("Removed role_id={} from discord_id={}", role_id, discord_id);
+        }
+    }
+
+    for res in future::join_all(rem_futures).await {
+        if let Err(e) = res {
+            error!(
+                "Failed to remove role from discord_id={}: {}",
+                discord_id, e
+            );
         }
     }
 
@@ -199,8 +268,7 @@ async fn rating(ctx: &Context, msg: &Message) -> CommandResult {
                     m.content(
                         "Couldn't find a lichess user associated with your account. \
                         Please use the `ohnomy account` command first.",
-                    );
-                    m
+                    )
                 })
                 .await?;
         }
@@ -208,8 +276,7 @@ async fn rating(ctx: &Context, msg: &Message) -> CommandResult {
             error!("Unable to query database: {}", why);
             msg.channel_id
                 .send_message(&ctx, |m| {
-                    m.content("Internal bot error. @teotwaki, I'm scared.");
-                    m
+                    m.content("Internal bot error. @teotwaki, I'm scared.")
                 })
                 .await?;
         }

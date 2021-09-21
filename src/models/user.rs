@@ -103,6 +103,12 @@ impl User {
 
         Ok(keys.len())
     }
+
+    pub async fn delete(&mut self, pool: &db::Pool) -> Result<bool> {
+        trace!("User::delete() called");
+
+        Ok(db::del(pool, &self.key()).await?)
+    }
 }
 
 impl fmt::Display for User {

@@ -59,3 +59,12 @@ pub async fn keys(pool: &Pool, prefix: &str) -> Result<Vec<String>> {
 
     Ok(FromRedisValue::from_redis_value(&value).map_err(Error::Type)?)
 }
+
+pub async fn del(pool: &Pool, key: &str) -> Result<bool> {
+    trace!("del() called");
+    let mut conn = get_connection(pool).await?;
+
+    let value = conn.del(key).await?;
+
+    Ok(FromRedisValue::from_redis_value(&value).map_err(Error::Type)?)
+}

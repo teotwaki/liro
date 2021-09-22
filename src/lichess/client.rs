@@ -64,7 +64,7 @@ impl Client {
         }
     }
 
-    pub async fn validate_token(&self, access_token: &str) -> Result<String> {
+    pub async fn validate_token(&self, access_token: &str) -> Result<LichessUser> {
         trace!("Client::validate_token() called");
 
         let result = self
@@ -74,7 +74,7 @@ impl Client {
             .send()
             .await?;
 
-        Ok(result.json::<LichessUser>().await?.username)
+        Ok(result.json::<LichessUser>().await?)
     }
 
     pub async fn fetch_user_ratings(&self, username: &str) -> Result<HashMap<Format, i16>> {

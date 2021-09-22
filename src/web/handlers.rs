@@ -59,16 +59,22 @@ pub async fn oauth_callback_handler(
         .await
         .map_err(Error::Lichess)?;
 
-    let username = lichess
+    let lichess_user = lichess
         .validate_token(&access_token)
         .await
         .map_err(Error::Lichess)?;
+
+    if lichess_user.is_bot() {
+        return Err(Error::BotAccount.into());
+    }
+
+    let username = lichess_user.get_username().to_string();
 
     let user = User::new(
         &pool,
         challenge.guild_id(),
         challenge.discord_id(),
-        username.to_string(),
+        username,
     )
     .await
     .map_err(|_| Error::DBAccess)?;

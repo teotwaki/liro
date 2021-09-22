@@ -6,6 +6,17 @@ use std::collections::HashMap;
 #[derive(Debug, Clone, Deserialize)]
 pub struct LichessUser {
     username: String,
+    title: Option<String>,
+}
+
+impl LichessUser {
+    pub fn get_username(&self) -> &str {
+        &self.username
+    }
+
+    pub fn is_bot(&self) -> bool {
+        self.title == Some("BOT".to_string())
+    }
 }
 
 #[derive(Debug, Clone, Deserialize)]

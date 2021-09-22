@@ -47,6 +47,17 @@ pub async fn get(pool: &Pool, key: &str) -> Result<Option<String>> {
     Ok(conn.get(key).await?)
 }
 
+pub async fn mget(pool: &Pool, keys: Vec<String>) -> Result<Vec<String>> {
+    trace!("mget() called");
+    let mut conn = get_connection(pool).await?;
+
+    if keys.len() == 1 {
+        Ok(vec![conn.get(keys).await?])
+    } else {
+        Ok(conn.get(keys).await?)
+    }
+}
+
 pub async fn keys(pool: &Pool, prefix: &str) -> Result<Vec<String>> {
     trace!("keys() called");
     let mut conn = get_connection(pool).await?;

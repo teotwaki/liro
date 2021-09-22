@@ -70,6 +70,14 @@ pub async fn oauth_callback_handler(
 
     let username = lichess_user.get_username().to_string();
 
+    let user = User::find_by_username(&pool, challenge.guild_id(), &username)
+        .await
+        .map_err(Error::Database)?;
+
+    if user.is_some() {
+        return Err(Error::DuplicateLink.into());
+    }
+
     let user = User::new(
         &pool,
         challenge.guild_id(),

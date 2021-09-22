@@ -70,6 +70,19 @@ impl User {
         }
     }
 
+    pub async fn find_by_username(
+        pool: &db::Pool,
+        guild_id: u64,
+        username: &str,
+    ) -> Result<Option<User>> {
+        trace!("User::find_by_username() called");
+        let users = User::fetch_all(pool, guild_id).await?;
+
+        Ok(users
+            .into_iter()
+            .find(|u| u.get_lichess_username() == username))
+    }
+
     pub fn get_lichess_username(&self) -> &str {
         trace!("User::lichess_username() called");
         &self.lichess_username
@@ -94,6 +107,23 @@ impl User {
     pub fn get_ratings(&self) -> &HashMap<Format, i16> {
         trace!("User::get_ratings() called");
         &self.ratings
+    }
+
+    pub async fn fetch_all(pool: &db::Pool, guild_id: u64) -> Result<Vec<User>> {
+        trace!("User::fetch_all() called");
+
+        let prefix = format!("guilds:{}:users:*", guild_id);
+        let keys = db::keys(pool, &prefix).await?;
+
+        if !keys.is_empty() {
+            Ok(db::mget(pool, keys)
+                .await?
+                .iter()
+                .map(|s| serde_json::from_str(s))
+                .collect::<std::result::Result<Vec<_>, _>>()?)
+        } else {
+            Ok(Default::default())
+        }
     }
 
     pub async fn count(pool: &db::Pool) -> Result<usize> {

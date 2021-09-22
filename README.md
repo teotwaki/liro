@@ -50,7 +50,8 @@ crazy overlapping roles, you will get duplicate matches.
 
 # Todo
 
-- Handle sharding
-- Handle permission errors when roles are misconfigured
-- Add automated role creation
 - Implement application commands
+- Add automated role creation
+- Implement chesscom support
+- Implement auth token for lichess API to get better rate limits
+- Handle sharding

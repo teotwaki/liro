@@ -51,7 +51,7 @@ pub async fn oauth_callback_handler(
     trace!("oauth_callback_handler() called");
     let challenge = Challenge::find(&pool, params.state)
         .await
-        .map_err(|_| Error::DBAccess)?
+        .map_err(Error::Database)?
         .ok_or(Error::ChallengeNotFound)?;
 
     let access_token = lichess
@@ -59,19 +59,35 @@ pub async fn oauth_callback_handler(
         .await
         .map_err(Error::Lichess)?;
 
-    let username = lichess
+    let lichess_user = lichess
         .validate_token(&access_token)
         .await
         .map_err(Error::Lichess)?;
+
+    if lichess_user.is_bot() {
+        return Err(Error::BotAccount.into());
+    }
+
+    let username = lichess_user.get_username().to_string();
+
+    let user = User::find_by_username(&pool, challenge.guild_id(), &username)
+        .await
+        .map_err(Error::Database)?;
+
+    if user.is_some() {
+        return Err(Error::DuplicateLink.into());
+    }
 
     let user = User::new(
         &pool,
         challenge.guild_id(),
         challenge.discord_id(),
-        username.to_string(),
+        username,
     )
     .await
-    .map_err(|_| Error::DBAccess)?;
+    .map_err(Error::Database)?;
+
+    challenge.delete(&pool).await.map_err(Error::Database)?;
 
     let template = AccountLinkedTemplate {
         username: user.get_lichess_username(),
@@ -93,9 +109,9 @@ pub async fn dashboard_handler(pool: Pool) -> Result<impl Reply> {
     );
 
     let template = DashboardTemplate {
-        guilds: guilds.map_err(|_| Error::DBAccess)?,
-        users: users.map_err(|_| Error::DBAccess)?,
-        challenges: challenges.map_err(|_| Error::DBAccess)?,
+        guilds: guilds.map_err(Error::Database)?,
+        users: users.map_err(Error::Database)?,
+        challenges: challenges.map_err(Error::Database)?,
     };
 
     match template.render() {

@@ -51,7 +51,7 @@ pub async fn oauth_callback_handler(
     trace!("oauth_callback_handler() called");
     let challenge = Challenge::find(&pool, params.state)
         .await
-        .map_err(|_| Error::DBAccess)?
+        .map_err(Error::Database)?
         .ok_or(Error::ChallengeNotFound)?;
 
     let access_token = lichess
@@ -85,7 +85,7 @@ pub async fn oauth_callback_handler(
         username,
     )
     .await
-    .map_err(|_| Error::DBAccess)?;
+    .map_err(Error::Database)?;
 
     challenge.delete(&pool).await.map_err(Error::Database)?;
 
@@ -109,9 +109,9 @@ pub async fn dashboard_handler(pool: Pool) -> Result<impl Reply> {
     );
 
     let template = DashboardTemplate {
-        guilds: guilds.map_err(|_| Error::DBAccess)?,
-        users: users.map_err(|_| Error::DBAccess)?,
-        challenges: challenges.map_err(|_| Error::DBAccess)?,
+        guilds: guilds.map_err(Error::Database)?,
+        users: users.map_err(Error::Database)?,
+        challenges: challenges.map_err(Error::Database)?,
     };
 
     match template.render() {

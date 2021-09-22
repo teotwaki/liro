@@ -13,10 +13,15 @@ pub struct Challenge {
     code_verifier: Vec<u8>,
 }
 
+fn key(id: u64) -> String {
+    trace!("key() called");
+    format!("challenges:{}", id)
+}
+
 impl Challenge {
-    fn key(id: u64) -> String {
+    fn key(&self) -> String {
         trace!("Challenge::key() called");
-        format!("challenges:{}", id)
+        key(self.id)
     }
 
     pub async fn new(pool: &db::Pool, guild_id: u64, discord_id: u64) -> Result<Challenge> {
@@ -36,14 +41,14 @@ impl Challenge {
     async fn save(&self, pool: &db::Pool) -> Result<()> {
         trace!("Challenge::save() called");
         let serialized = serde_json::to_string(self)?;
-        db::set_ttl(pool, &Challenge::key(self.id), &serialized, TTL).await?;
+        db::set_ttl(pool, &self.key(), &serialized, TTL).await?;
 
         Ok(())
     }
 
     pub async fn find(pool: &db::Pool, id: u64) -> Result<Option<Challenge>> {
         trace!("Challenge::find() called");
-        match db::get(pool, &Challenge::key(id)).await? {
+        match db::get(pool, &key(id)).await? {
             Some(serialized) => Ok(Some(serde_json::from_str(&serialized)?)),
             None => Ok(None),
         }

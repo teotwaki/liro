@@ -9,8 +9,6 @@ pub enum Error {
     Pool(#[from] mobc::Error<redis::RedisError>),
     #[error("error while running command: {0}")]
     Command(#[from] redis::RedisError),
-    #[error("type conversion error: {0}")]
-    Type(redis::RedisError),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

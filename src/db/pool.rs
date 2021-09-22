@@ -1,7 +1,7 @@
 use super::{Error, Result};
 use crate::config;
 use mobc_redis::{
-    redis::{self, AsyncCommands, FromRedisValue},
+    redis::{self, AsyncCommands},
     RedisConnectionManager,
 };
 
@@ -44,27 +44,19 @@ pub async fn get(pool: &Pool, key: &str) -> Result<Option<String>> {
     trace!("get() called");
     let mut conn = get_connection(pool).await?;
 
-    let value = conn.get(key).await?;
-    Ok(match value {
-        redis::Value::Nil => None,
-        _ => Some(FromRedisValue::from_redis_value(&value).map_err(Error::Type)?),
-    })
+    Ok(conn.get(key).await?)
 }
 
 pub async fn keys(pool: &Pool, prefix: &str) -> Result<Vec<String>> {
     trace!("keys() called");
     let mut conn = get_connection(pool).await?;
 
-    let value = conn.keys(prefix).await?;
-
-    Ok(FromRedisValue::from_redis_value(&value).map_err(Error::Type)?)
+    Ok(conn.keys(prefix).await?)
 }
 
 pub async fn del(pool: &Pool, key: &str) -> Result<bool> {
     trace!("del() called");
     let mut conn = get_connection(pool).await?;
 
-    let value = conn.del(key).await?;
-
-    Ok(FromRedisValue::from_redis_value(&value).map_err(Error::Type)?)
+    Ok(conn.del(key).await?)
 }

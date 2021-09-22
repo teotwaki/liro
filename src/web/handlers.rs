@@ -73,6 +73,8 @@ pub async fn oauth_callback_handler(
     .await
     .map_err(|_| Error::DBAccess)?;
 
+    challenge.delete(&pool).await.map_err(Error::Database)?;
+
     let template = AccountLinkedTemplate {
         username: user.get_lichess_username(),
     };

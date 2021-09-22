@@ -94,6 +94,14 @@ impl Challenge {
 
         Ok(keys.len())
     }
+
+    pub async fn delete(&self, pool: &db::Pool) -> Result<()> {
+        trace!("Challenge::delete() called");
+
+        db::del(pool, &self.key()).await?;
+
+        Ok(())
+    }
 }
 
 impl fmt::Display for Challenge {

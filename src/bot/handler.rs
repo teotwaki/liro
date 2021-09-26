@@ -39,6 +39,34 @@ impl EventHandler for Handler {
         }
     }
 
+    async fn guild_delete(&self, ctx: Context, guild: GuildUnavailable) {
+        trace!("Handler::guild_delete() called");
+        let guild_id = *guild.id.as_u64();
+        let data = ctx.data.read().await;
+        let pool = data.get::<PoolContainer>().unwrap().clone();
+
+        match models::Guild::find(&pool, guild_id).await {
+            Ok(Some(guild)) => {
+                info!("Deleting {}", guild);
+                if let Err(e) = guild.delete(&pool).await {
+                    error!("Unable to delete guild_id={}: {}", guild_id, e);
+                    return;
+                }
+            }
+            Ok(None) => info!(
+                "Ignoring request to delete non-existent guild_id={}",
+                guild_id
+            ),
+            Err(e) => {
+                error!("Unable to remove guild_id={}: {}", guild_id, e);
+                return;
+            }
+        }
+
+        let mut role_manager = data.get::<RoleManagerContainer>().unwrap().clone();
+        role_manager.delete_guild(guild_id);
+    }
+
     async fn guild_role_create(&self, ctx: Context, guild_id: GuildId, role: Role) {
         trace!("Handler::guild_role_create() called");
         info!(

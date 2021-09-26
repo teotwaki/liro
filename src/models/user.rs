@@ -70,17 +70,20 @@ impl User {
         }
     }
 
-    pub async fn find_by_username(
+    pub async fn find_by_username<U>(
         pool: &db::Pool,
         guild_id: u64,
-        username: &str,
-    ) -> Result<Option<User>> {
+        username: U,
+    ) -> Result<Option<User>>
+    where
+        U: AsRef<str>,
+    {
         trace!("User::find_by_username() called");
         let users = User::fetch_all(pool, guild_id).await?;
 
         Ok(users
             .into_iter()
-            .find(|u| u.get_lichess_username() == username))
+            .find(|u| u.get_lichess_username() == username.as_ref()))
     }
 
     pub fn get_lichess_username(&self) -> &str {

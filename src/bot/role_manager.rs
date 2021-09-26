@@ -64,7 +64,10 @@ impl RoleManager {
             .unwrap_or_default()
     }
 
-    pub fn other_rating_range_roles(&self, guild_id: u64, role_ids: &[u64]) -> Vec<u64> {
+    pub fn other_rating_range_roles<R>(&self, guild_id: u64, role_ids: R) -> Vec<u64>
+    where
+        R: AsRef<[u64]>,
+    {
         trace!("RoleManager::other_rating_range_roles() called");
         self.guild_roles
             .lock()
@@ -72,13 +75,22 @@ impl RoleManager {
             .get(&guild_id)
             .map(|gr| {
                 gr.keys()
-                    .filter_map(|k| if role_ids.contains(k) { None } else { Some(*k) })
+                    .filter_map(|k| {
+                        if role_ids.as_ref().contains(k) {
+                            None
+                        } else {
+                            Some(*k)
+                        }
+                    })
                     .collect()
             })
             .unwrap_or_default()
     }
 
-    pub fn get_rating_role_names(&self, guild_id: u64, role_ids: &[u64]) -> Vec<String> {
+    pub fn get_rating_role_names<R>(&self, guild_id: u64, role_ids: R) -> Vec<String>
+    where
+        R: AsRef<[u64]>,
+    {
         trace!("RoleManager::get_rating_role_names() called");
         self.guild_roles
             .lock()
@@ -87,7 +99,7 @@ impl RoleManager {
             .map(|gr| {
                 gr.iter()
                     .filter_map(|(k, v)| {
-                        if role_ids.contains(k) {
+                        if role_ids.as_ref().contains(k) {
                             v.get_name()
                         } else {
                             None

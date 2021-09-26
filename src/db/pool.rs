@@ -58,9 +58,13 @@ where
     Ok(conn.get(key.as_ref()).await?)
 }
 
-pub async fn mget(pool: &Pool, keys: Vec<String>) -> Result<Vec<String>> {
+pub async fn mget<V>(pool: &Pool, keys: V) -> Result<Vec<String>>
+where
+    V: Into<Vec<String>>,
+{
     trace!("mget() called");
     let mut conn = get_connection(pool).await?;
+    let keys = keys.into();
 
     if keys.len() == 1 {
         Ok(vec![conn.get(keys).await?])

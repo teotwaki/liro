@@ -21,14 +21,20 @@ impl RoleManager {
     /// Adds a new rating range role for the specific `guild_id`
     ///
     /// If the `guild_id` does not exist in the role manager, it is automatically created.
-    pub fn add_rating_range(&mut self, guild_id: u64, role_id: u64, rating: RatingRange) {
+    pub fn add_rating_range<R>(&mut self, guild_id: u64, role_id: u64, rating: R)
+    where
+        R: Into<RatingRange>,
+    {
         trace!("RoleManager::add_rating_range() called");
         let mut lock = self.guild_roles.lock().unwrap();
 
         if let Some(gr) = lock.get_mut(&guild_id) {
-            gr.insert(role_id, rating);
+            gr.insert(role_id, rating.into());
         } else {
-            lock.insert(guild_id, [(role_id, rating)].iter().cloned().collect());
+            lock.insert(
+                guild_id,
+                [(role_id, rating.into())].iter().cloned().collect(),
+            );
         }
     }
 

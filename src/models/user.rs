@@ -25,17 +25,20 @@ impl User {
         key(self.guild_id, self.discord_id)
     }
 
-    pub async fn new(
+    pub async fn new<U>(
         pool: &db::Pool,
         guild_id: u64,
         discord_id: u64,
-        lichess_username: String,
-    ) -> Result<User> {
+        lichess_username: U,
+    ) -> Result<User>
+    where
+        U: Into<String>,
+    {
         trace!("User::new() called");
         let user = User {
             guild_id,
             discord_id,
-            lichess_username,
+            lichess_username: lichess_username.into(),
             ratings: Default::default(),
         };
 

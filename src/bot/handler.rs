@@ -1,4 +1,5 @@
 use super::run::RoleManagerContainer;
+use crate::bot::rating_range::RatingRange;
 use serenity::{
     async_trait,
     model::{gateway::Ready, guild::Guild, prelude::*},
@@ -17,7 +18,7 @@ impl EventHandler for Handler {
         let mut role_manager = data.get::<RoleManagerContainer>().unwrap().clone();
 
         for (role_id, role) in &guild.roles {
-            if let Ok(rr) = role.name.parse() {
+            if let Ok(rr) = role.name.parse::<RatingRange>() {
                 info!(
                     "Adding new role {} (role_id={}) to guild {} (guild_id={})",
                     role.name,
@@ -39,7 +40,7 @@ impl EventHandler for Handler {
         let data = ctx.data.read().await;
         let mut role_manager = data.get::<RoleManagerContainer>().unwrap().clone();
 
-        if let Ok(rr) = role.name.parse() {
+        if let Ok(rr) = role.name.parse::<RatingRange>() {
             role_manager.add_rating_range(*guild_id.as_u64(), *role.id.as_u64(), rr);
         }
     }
@@ -54,7 +55,7 @@ impl EventHandler for Handler {
 
         role_manager.remove_role(guild_id, role_id);
 
-        if let Ok(rr) = role.name.parse() {
+        if let Ok(rr) = role.name.parse::<RatingRange>() {
             info!(
                 "Updating role {} (role_id={}) in guild_id={}",
                 role.name, role_id, guild_id

@@ -11,15 +11,28 @@ pub struct RatingRange {
 }
 
 impl RatingRange {
-    pub fn new(format: Format, min: Option<i16>, max: Option<i16>) -> RatingRange {
+    pub fn new<F, O>(format: F, min: O, max: O) -> RatingRange
+    where
+        F: Into<Format>,
+        O: Into<Option<i16>>,
+    {
         trace!("RatingRange::new() called");
-        let rr = RatingRange { format, min, max };
+        let rr = RatingRange {
+            format: format.into(),
+            min: min.into(),
+            max: max.into(),
+        };
         debug!("Creating new {}", rr);
         rr
     }
 
-    pub fn is_match(&self, format: Format, rating: i16) -> bool {
+    pub fn is_match<F>(&self, format: F, rating: i16) -> bool
+    where
+        F: Into<Format>,
+    {
         trace!("RatingRange::is_match() called");
+        let format = format.into();
+
         if self.format != format {
             return false;
         }

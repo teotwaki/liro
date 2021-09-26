@@ -16,7 +16,7 @@ pub struct User {
 
 fn key(guild_id: u64, discord_id: u64) -> String {
     trace!("key() called");
-    format!("guilds:{}:users:{}", guild_id, discord_id)
+    format!("users:{}:{}", guild_id, discord_id)
 }
 
 impl User {
@@ -51,7 +51,7 @@ impl User {
         trace!("User::save() called");
         debug!("Saving {}", &self);
         let serialized = serde_json::to_string(self)?;
-        db::set(pool, &self.key(), &serialized).await?;
+        db::set(pool, self.key(), serialized).await?;
 
         Ok(())
     }
@@ -60,7 +60,7 @@ impl User {
         trace!("User::find() called");
         debug!("Looking up user with discord_id={}", discord_id);
 
-        match db::get(pool, &key(guild_id, discord_id)).await? {
+        match db::get(pool, key(guild_id, discord_id)).await? {
             Some(serialized) => {
                 let user = serde_json::from_str(&serialized)?;
                 debug!("Found {}", user);
@@ -119,7 +119,7 @@ impl User {
         trace!("User::fetch_all() called");
 
         let prefix = format!("guilds:{}:users:*", guild_id);
-        let keys = db::keys(pool, &prefix).await?;
+        let keys = db::keys(pool, prefix).await?;
 
         if !keys.is_empty() {
             Ok(db::mget(pool, keys)
@@ -143,7 +143,7 @@ impl User {
     pub async fn delete(&mut self, pool: &db::Pool) -> Result<bool> {
         trace!("User::delete() called");
 
-        Ok(db::del(pool, &self.key()).await?)
+        Ok(db::del(pool, self.key()).await?)
     }
 }
 

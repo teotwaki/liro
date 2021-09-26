@@ -45,6 +45,11 @@ impl RoleManager {
         }
     }
 
+    pub fn delete_guild(&mut self, guild_id: u64) {
+        trace!("RoleManager::delete_guild() called");
+        self.guild_roles.lock().unwrap().remove(&guild_id);
+    }
+
     pub fn find_rating_range_roles(
         &self,
         guild_id: u64,

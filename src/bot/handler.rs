@@ -1,5 +1,5 @@
-use super::run::RoleManagerContainer;
-use crate::bot::rating_range::RatingRange;
+use super::run::{PoolContainer, RoleManagerContainer};
+use crate::{bot::rating_range::RatingRange, models};
 use serenity::{
     async_trait,
     model::{gateway::Ready, guild::Guild, prelude::*},
@@ -12,23 +12,59 @@ pub struct Handler;
 impl EventHandler for Handler {
     async fn guild_create(&self, ctx: Context, guild: Guild) {
         trace!("Handler::guild_create() called");
-        let guild_id = *guild.id.as_u64();
-        info!("Joining new guild {} (guild_id={})", guild.name, guild_id);
         let data = ctx.data.read().await;
-        let mut role_manager = data.get::<RoleManagerContainer>().unwrap().clone();
 
+        let guild_id = *guild.id.as_u64();
+        {
+            let pool = data.get::<PoolContainer>().unwrap().clone();
+            match models::Guild::new(&pool, guild_id, &guild.name).await {
+                Ok(guild) => info!("Joining new {}", guild),
+                Err(e) => {
+                    error!("Unable to save guild: {}", e);
+                    return;
+                }
+            }
+        }
+
+        let mut role_manager = data.get::<RoleManagerContainer>().unwrap().clone();
         for (role_id, role) in &guild.roles {
+            let role_id = *role_id.as_u64();
             if let Ok(rr) = role.name.parse::<RatingRange>() {
                 info!(
                     "Adding new role {} (role_id={}) to guild {} (guild_id={})",
-                    role.name,
-                    *role_id.as_u64(),
-                    guild.name,
-                    guild_id
+                    role.name, role_id, guild.name, guild_id
                 );
-                role_manager.add_rating_range(guild_id, *role_id.as_u64(), rr);
+                role_manager.add_rating_range(guild_id, role_id, rr);
             }
         }
+    }
+
+    async fn guild_delete(&self, ctx: Context, guild: GuildUnavailable) {
+        trace!("Handler::guild_delete() called");
+        let guild_id = *guild.id.as_u64();
+        let data = ctx.data.read().await;
+        let pool = data.get::<PoolContainer>().unwrap().clone();
+
+        match models::Guild::find(&pool, guild_id).await {
+            Ok(Some(guild)) => {
+                info!("Deleting {}", guild);
+                if let Err(e) = guild.delete(&pool).await {
+                    error!("Unable to delete guild_id={}: {}", guild_id, e);
+                    return;
+                }
+            }
+            Ok(None) => info!(
+                "Ignoring request to delete non-existent guild_id={}",
+                guild_id
+            ),
+            Err(e) => {
+                error!("Unable to remove guild_id={}: {}", guild_id, e);
+                return;
+            }
+        }
+
+        let mut role_manager = data.get::<RoleManagerContainer>().unwrap().clone();
+        role_manager.delete_guild(guild_id);
     }
 
     async fn guild_role_create(&self, ctx: Context, guild_id: GuildId, role: Role) {

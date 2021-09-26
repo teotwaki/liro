@@ -21,9 +21,10 @@ struct AccountLinkedTemplate<'a> {
 #[derive(Template)]
 #[template(path = "dashboard.html")]
 struct DashboardTemplate {
-    guilds: usize,
-    users: usize,
-    challenges: usize,
+    guild_count: usize,
+    user_count: usize,
+    unique_user_count: usize,
+    challenge_count: usize,
 }
 
 #[derive(Deserialize, Debug)]
@@ -102,16 +103,18 @@ pub async fn oauth_callback_handler(
 pub async fn dashboard_handler(pool: Pool) -> Result<impl Reply> {
     trace!("dashboard_handler() called");
 
-    let (guilds, users, challenges) = tokio::join!(
+    let (guild_count, user_count, unique_user_count, challenge_count) = tokio::join!(
         Guild::count(&pool),
         User::count(&pool),
+        User::unique_count(&pool),
         Challenge::count(&pool)
     );
 
     let template = DashboardTemplate {
-        guilds: guilds.map_err(Error::Database)?,
-        users: users.map_err(Error::Database)?,
-        challenges: challenges.map_err(Error::Database)?,
+        guild_count: guild_count.map_err(Error::Database)?,
+        user_count: user_count.map_err(Error::Database)?,
+        unique_user_count: unique_user_count.map_err(Error::Database)?,
+        challenge_count: challenge_count.map_err(Error::Database)?,
     };
 
     match template.render() {

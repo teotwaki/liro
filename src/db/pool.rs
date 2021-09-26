@@ -24,33 +24,51 @@ async fn get_connection(pool: &Pool) -> Result<Connection> {
     Ok(pool.get().await?)
 }
 
-pub async fn set(pool: &Pool, key: &str, value: &str) -> Result<()> {
+pub async fn set<K, V>(pool: &Pool, key: K, value: V) -> Result<()>
+where
+    K: AsRef<str>,
+    V: AsRef<str>,
+{
     trace!("set() called");
     let mut conn = get_connection(pool).await?;
 
-    conn.set(key, value).await?;
+    conn.set(key.as_ref(), value.as_ref()).await?;
     Ok(())
 }
 
-pub async fn set_ttl(pool: &Pool, key: &str, value: &str, ttl: usize) -> Result<()> {
+pub async fn set_ttl<K, V>(pool: &Pool, key: K, value: V, ttl: usize) -> Result<()>
+where
+    K: AsRef<str>,
+    V: AsRef<str>,
+{
     trace!("set_ttl() called");
     let mut conn = get_connection(pool).await?;
 
-    conn.set_ex(key, value, ttl).await?;
+    conn.set_ex(key.as_ref(), value.as_ref(), ttl).await?;
     Ok(())
 }
 
-pub async fn get(pool: &Pool, key: &str) -> Result<Option<String>> {
+pub async fn get<K>(pool: &Pool, key: K) -> Result<Option<String>>
+where
+    K: AsRef<str>,
+{
     trace!("get() called");
     let mut conn = get_connection(pool).await?;
 
-    Ok(conn.get(key).await?)
+    Ok(conn.get(key.as_ref()).await?)
 }
 
-pub async fn mget(pool: &Pool, keys: Vec<String>) -> Result<Vec<String>> {
+pub async fn mget<V>(pool: &Pool, keys: V) -> Result<Vec<String>>
+where
+    V: Into<Vec<String>>,
+{
     trace!("mget() called");
     let mut conn = get_connection(pool).await?;
+    let keys = keys.into();
 
+    // TODO: Instead of using the number of keys (inputs), this should be using the number of
+    // outputs (results) to figure out if we should wrap in a Vec or not. At the moment, this can
+    // cause a panic if the number of results is 1
     if keys.len() == 1 {
         Ok(vec![conn.get(keys).await?])
     } else {
@@ -58,16 +76,22 @@ pub async fn mget(pool: &Pool, keys: Vec<String>) -> Result<Vec<String>> {
     }
 }
 
-pub async fn keys(pool: &Pool, prefix: &str) -> Result<Vec<String>> {
+pub async fn keys<K>(pool: &Pool, prefix: K) -> Result<Vec<String>>
+where
+    K: AsRef<str>,
+{
     trace!("keys() called");
     let mut conn = get_connection(pool).await?;
 
-    Ok(conn.keys(prefix).await?)
+    Ok(conn.keys(prefix.as_ref()).await?)
 }
 
-pub async fn del(pool: &Pool, key: &str) -> Result<bool> {
+pub async fn del<K>(pool: &Pool, key: K) -> Result<bool>
+where
+    K: AsRef<str>,
+{
     trace!("del() called");
     let mut conn = get_connection(pool).await?;
 
-    Ok(conn.del(key).await?)
+    Ok(conn.del(key.as_ref()).await?)
 }

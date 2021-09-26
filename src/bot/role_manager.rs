@@ -21,14 +21,20 @@ impl RoleManager {
     /// Adds a new rating range role for the specific `guild_id`
     ///
     /// If the `guild_id` does not exist in the role manager, it is automatically created.
-    pub fn add_rating_range(&mut self, guild_id: u64, role_id: u64, rating: RatingRange) {
+    pub fn add_rating_range<R>(&mut self, guild_id: u64, role_id: u64, rating: R)
+    where
+        R: Into<RatingRange>,
+    {
         trace!("RoleManager::add_rating_range() called");
         let mut lock = self.guild_roles.lock().unwrap();
 
         if let Some(gr) = lock.get_mut(&guild_id) {
-            gr.insert(role_id, rating);
+            gr.insert(role_id, rating.into());
         } else {
-            lock.insert(guild_id, [(role_id, rating)].iter().cloned().collect());
+            lock.insert(
+                guild_id,
+                [(role_id, rating.into())].iter().cloned().collect(),
+            );
         }
     }
 
@@ -64,7 +70,10 @@ impl RoleManager {
             .unwrap_or_default()
     }
 
-    pub fn other_rating_range_roles(&self, guild_id: u64, role_ids: &[u64]) -> Vec<u64> {
+    pub fn other_rating_range_roles<R>(&self, guild_id: u64, role_ids: R) -> Vec<u64>
+    where
+        R: AsRef<[u64]>,
+    {
         trace!("RoleManager::other_rating_range_roles() called");
         self.guild_roles
             .lock()
@@ -72,13 +81,22 @@ impl RoleManager {
             .get(&guild_id)
             .map(|gr| {
                 gr.keys()
-                    .filter_map(|k| if role_ids.contains(k) { None } else { Some(*k) })
+                    .filter_map(|k| {
+                        if role_ids.as_ref().contains(k) {
+                            None
+                        } else {
+                            Some(*k)
+                        }
+                    })
                     .collect()
             })
             .unwrap_or_default()
     }
 
-    pub fn get_rating_role_names(&self, guild_id: u64, role_ids: &[u64]) -> Vec<String> {
+    pub fn get_rating_role_names<R>(&self, guild_id: u64, role_ids: R) -> Vec<String>
+    where
+        R: AsRef<[u64]>,
+    {
         trace!("RoleManager::get_rating_role_names() called");
         self.guild_roles
             .lock()
@@ -87,7 +105,7 @@ impl RoleManager {
             .map(|gr| {
                 gr.iter()
                     .filter_map(|(k, v)| {
-                        if role_ids.contains(k) {
+                        if role_ids.as_ref().contains(k) {
                             v.get_name()
                         } else {
                             None

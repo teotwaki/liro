@@ -1,6 +1,10 @@
 use crate::config;
 
-pub fn oauth_url(code_challenge: &str, state: &str) -> String {
+pub fn oauth_url<C, S>(code_challenge: C, state: S) -> String
+where
+    C: AsRef<str>,
+    S: AsRef<str>,
+{
     format!(
         "https://lichess.org/oauth\
              ?response_type=code\
@@ -11,7 +15,7 @@ pub fn oauth_url(code_challenge: &str, state: &str) -> String {
              &state={}",
         config::hostname(),
         config::client_id(),
-        code_challenge,
-        state
+        code_challenge.as_ref(),
+        state.as_ref()
     )
 }

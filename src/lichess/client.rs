@@ -64,32 +64,42 @@ impl Client {
         }
     }
 
-    pub async fn validate_token(&self, access_token: &str) -> Result<LichessUser> {
+    pub async fn validate_token<T>(&self, access_token: T) -> Result<LichessUser>
+    where
+        T: AsRef<str>,
+    {
         trace!("Client::validate_token() called");
 
         let result = self
             .http
             .get("https://lichess.org/api/account")
-            .header("Authorization", format!("Bearer {}", access_token))
+            .header("Authorization", format!("Bearer {}", access_token.as_ref()))
             .send()
             .await?;
 
         Ok(result.json::<LichessUser>().await?)
     }
 
-    pub async fn fetch_user_ratings(&self, username: &str) -> Result<HashMap<Format, i16>> {
+    pub async fn fetch_user_ratings<U>(&self, username: U) -> Result<HashMap<Format, i16>>
+    where
+        U: AsRef<str>,
+    {
         trace!("Client::fetch_user_ratings() called");
-        let url = format!("https://lichess.org/api/user/{}", username);
+        let url = format!("https://lichess.org/api/user/{}", username.as_ref());
         let profile = self.http.get(url).send().await?.json::<Profile>().await?;
         Ok(profile.get_ratings())
     }
 
-    pub async fn fetch_access_token(&self, code: &str, code_verifier: &str) -> Result<String> {
+    pub async fn fetch_access_token<C, V>(&self, code: C, code_verifier: V) -> Result<String>
+    where
+        C: AsRef<str>,
+        V: AsRef<str>,
+    {
         trace!("Client::fetch_access_token() called");
         let query_params = [
             ("grant_type", "authorization_code"),
-            ("code", code),
-            ("code_verifier", code_verifier),
+            ("code", code.as_ref()),
+            ("code_verifier", code_verifier.as_ref()),
             ("client_id", &config::client_id()),
             (
                 "redirect_uri",

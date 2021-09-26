@@ -25,17 +25,20 @@ impl User {
         key(self.guild_id, self.discord_id)
     }
 
-    pub async fn new(
+    pub async fn new<U>(
         pool: &db::Pool,
         guild_id: u64,
         discord_id: u64,
-        lichess_username: String,
-    ) -> Result<User> {
+        lichess_username: U,
+    ) -> Result<User>
+    where
+        U: Into<String>,
+    {
         trace!("User::new() called");
         let user = User {
             guild_id,
             discord_id,
-            lichess_username,
+            lichess_username: lichess_username.into(),
             ratings: Default::default(),
         };
 
@@ -70,17 +73,20 @@ impl User {
         }
     }
 
-    pub async fn find_by_username(
+    pub async fn find_by_username<U>(
         pool: &db::Pool,
         guild_id: u64,
-        username: &str,
-    ) -> Result<Option<User>> {
+        username: U,
+    ) -> Result<Option<User>>
+    where
+        U: AsRef<str>,
+    {
         trace!("User::find_by_username() called");
         let users = User::fetch_all(pool, guild_id).await?;
 
         Ok(users
             .into_iter()
-            .find(|u| u.get_lichess_username() == username))
+            .find(|u| u.get_lichess_username() == username.as_ref()))
     }
 
     pub fn get_lichess_username(&self) -> &str {

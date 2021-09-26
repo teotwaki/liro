@@ -38,7 +38,7 @@ impl Guild {
     async fn save(&self, pool: &db::Pool) -> Result<()> {
         trace!("Guild::save() called");
         let serialized = serde_json::to_string(self)?;
-        db::set(pool, &self.key(), &serialized).await?;
+        db::set(pool, self.key(), &serialized).await?;
 
         Ok(())
     }

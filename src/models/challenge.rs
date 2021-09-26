@@ -41,14 +41,14 @@ impl Challenge {
     async fn save(&self, pool: &db::Pool) -> Result<()> {
         trace!("Challenge::save() called");
         let serialized = serde_json::to_string(self)?;
-        db::set_ttl(pool, &self.key(), &serialized, TTL).await?;
+        db::set_ttl(pool, self.key(), serialized, TTL).await?;
 
         Ok(())
     }
 
     pub async fn find(pool: &db::Pool, id: u64) -> Result<Option<Challenge>> {
         trace!("Challenge::find() called");
-        match db::get(pool, &key(id)).await? {
+        match db::get(pool, key(id)).await? {
             Some(serialized) => Ok(Some(serde_json::from_str(&serialized)?)),
             None => Ok(None),
         }
@@ -76,7 +76,7 @@ impl Challenge {
 
     pub fn lichess_url(&self) -> String {
         trace!("Challenge::lichess_url() called");
-        auth::oauth_url(&self.code_challenge(), &self.state())
+        auth::oauth_url(self.code_challenge(), self.state())
     }
 
     pub fn code_verifier(&self) -> String {
@@ -98,7 +98,7 @@ impl Challenge {
     pub async fn delete(&self, pool: &db::Pool) -> Result<()> {
         trace!("Challenge::delete() called");
 
-        db::del(pool, &self.key()).await?;
+        db::del(pool, self.key()).await?;
 
         Ok(())
     }

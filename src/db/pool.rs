@@ -66,6 +66,9 @@ where
     let mut conn = get_connection(pool).await?;
     let keys = keys.into();
 
+    // TODO: Instead of using the number of keys (inputs), this should be using the number of
+    // outputs (results) to figure out if we should wrap in a Vec or not. At the moment, this can
+    // cause a panic if the number of results is 1
     if keys.len() == 1 {
         Ok(vec![conn.get(keys).await?])
     } else {

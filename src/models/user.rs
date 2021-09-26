@@ -16,7 +16,7 @@ pub struct User {
 
 fn key(guild_id: u64, discord_id: u64) -> String {
     trace!("key() called");
-    format!("guilds:{}:users:{}", guild_id, discord_id)
+    format!("users:{}:{}", guild_id, discord_id)
 }
 
 impl User {

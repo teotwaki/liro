@@ -118,7 +118,7 @@ impl User {
     pub async fn fetch_all(pool: &db::Pool, guild_id: u64) -> Result<Vec<User>> {
         trace!("User::fetch_all() called");
 
-        let prefix = format!("guilds:{}:users:*", guild_id);
+        let prefix = format!("users:{}:*", guild_id);
         let keys = db::keys(pool, prefix).await?;
 
         if !keys.is_empty() {
@@ -135,9 +135,28 @@ impl User {
     pub async fn count(pool: &db::Pool) -> Result<usize> {
         trace!("User::count() called");
 
-        let keys = db::keys(pool, "guilds:*:users:*").await?;
+        let keys = db::keys(pool, "users:*").await?;
 
         Ok(keys.len())
+    }
+
+    pub async fn unique_count(pool: &db::Pool) -> Result<usize> {
+        trace!("User::unique_count() called");
+        let keys = db::keys(pool, "users:*").await?;
+
+        let mut user_ids: Vec<u64> = keys
+            .iter()
+            .map(|k| {
+                k.split(':').collect::<Vec<&str>>()[2]
+                    .parse::<u64>()
+                    .unwrap_or(0)
+            })
+            .collect();
+
+        user_ids.sort_unstable();
+        user_ids.dedup();
+
+        Ok(user_ids.len())
     }
 
     pub async fn delete(&mut self, pool: &db::Pool) -> Result<bool> {

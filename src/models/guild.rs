@@ -9,14 +9,6 @@ impl Guild {
 
         let keys = db::keys(pool, "guilds:*").await?;
 
-        let mut guild_ids: Vec<&str> = keys
-            .iter()
-            .map(|k| k.split(':').collect::<Vec<&str>>()[1])
-            .collect();
-
-        guild_ids.sort_unstable();
-        guild_ids.dedup();
-
-        Ok(guild_ids.len())
+        Ok(keys.len())
     }
 }

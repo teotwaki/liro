@@ -50,6 +50,24 @@ impl Guild {
 
         Ok(keys.len())
     }
+
+    pub async fn delete(&self, pool: &db::Pool) -> Result<()> {
+        trace!("Guild::delete() called");
+        db::del(pool, self.key()).await?;
+
+        Ok(())
+    }
+
+    pub async fn find(pool: &db::Pool, id: u64) -> Result<Option<Guild>> {
+        trace!("Guild::find() called");
+        match db::get(pool, key(id)).await? {
+            Some(serialized) => {
+                let guild = serde_json::from_str(&serialized)?;
+                Ok(Some(guild))
+            }
+            None => Ok(None),
+        }
+    }
 }
 
 impl fmt::Display for Guild {

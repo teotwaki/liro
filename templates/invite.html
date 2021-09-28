@@ -39,12 +39,17 @@
         box.style.top = y + "px";
       }
 
-      move_box(max_left/2, max_top/2)
-
-      box.onmouseover = function() {
+      function move_box_random() {
         var x = Math.floor(Math.random() * max_left);
         var y = Math.floor(Math.random() * max_top);
         move_box(x, y);
+      }
+
+      move_box(max_left/2, max_top/2)
+
+      box.onmouseover = box.onclick = function(e) {
+        e.preventDefault();
+        move_box_random();
       };
     </script>
   </body>

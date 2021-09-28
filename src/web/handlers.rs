@@ -13,6 +13,10 @@ use warp::Reply;
 struct BotInvitedTemplate;
 
 #[derive(Template)]
+#[template(path = "invite.html")]
+struct InviteTemplate;
+
+#[derive(Template)]
 #[template(path = "linked.html")]
 struct AccountLinkedTemplate<'a> {
     username: &'a str,
@@ -116,6 +120,17 @@ pub async fn dashboard_handler(pool: Pool) -> Result<impl Reply> {
         unique_user_count: unique_user_count.map_err(Error::Database)?,
         challenge_count: challenge_count.map_err(Error::Database)?,
     };
+
+    match template.render() {
+        Ok(output) => Ok(warp::reply::html(output)),
+        Err(e) => Err(warp::reject::custom(Error::Template(e))),
+    }
+}
+
+pub async fn invite_handler() -> Result<impl Reply> {
+    trace!("invite_handler() called");
+
+    let template = InviteTemplate {};
 
     match template.render() {
         Ok(output) => Ok(warp::reply::html(output)),

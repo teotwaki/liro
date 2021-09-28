@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Invite Liro</title>
+    <link rel="stylesheet" href="https://unpkg.com/purecss@2.0.6/build/pure-min.css" integrity="sha384-Uu6IeWbM+gzNVXJcM9XV3SohHtmWE+3VGi496jvgX1jyvDTXfdK+rfZc8C1Aehk5" crossorigin="anonymous">
+    <link rel="stylesheet" href="/assets/css/dashboard.css">
+    <style>
+      html, body {
+        height: 100%;
+      }
+
+      #link-box {
+        position: absolute;
+        left: 300px;
+        top: 200px;
+        padding: 50px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="link-box">
+      <a href="https://discord.com/api/oauth2/authorize?client_id=878955941595336724&permissions=268438592&redirect_uri=https%3A%2F%2Fliro.wedrop.it%2Foauth&response_type=code&scope=bot%20applications.commands%20messages.read" class="pure-button pure-button-primary">
+        Invite Liro to your Discord server!
+      </a>
+    </div>
+    <script>
+      const width  = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+      const height = window.innerHeight|| document.documentElement.clientHeight|| document.body.clientHeight;
+
+      var box = document.getElementById("link-box");
+      var max_left = width - box.offsetWidth;
+      var max_top = height - box.offsetHeight;
+
+      function move_box(x, y) {
+        box.style.left = x + "px";
+        box.style.top = y + "px";
+      }
+
+      move_box(max_left/2, max_top/2)
+
+      box.onmouseover = function() {
+        var x = Math.floor(Math.random() * max_left);
+        var y = Math.floor(Math.random() * max_top);
+        move_box(x, y);
+      };
+    </script>
+  </body>
+</html>

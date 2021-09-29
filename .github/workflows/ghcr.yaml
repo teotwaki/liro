@@ -2,7 +2,7 @@ name: GHCR
 
 on:
   push:
-    tags:
+    tags: '*'
 
 jobs:
   package:

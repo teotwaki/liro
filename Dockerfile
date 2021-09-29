@@ -19,7 +19,6 @@ COPY src ./src
 COPY templates ./templates
 RUN \
   cargo build --release --target x86_64-unknown-linux-musl \
-  && strip target/x86_64-unknown-linux-musl/release/liro \
   && upx --lzma target/x86_64-unknown-linux-musl/release/liro
 
 FROM scratch

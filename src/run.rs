@@ -5,8 +5,6 @@ pub async fn run() {
     dotenv::dotenv().ok();
     pretty_env_logger::init();
 
-    openssl_probe::init_ssl_cert_env_vars();
-
     let pool = db::connect().await.expect("Couldn't connect to pool");
     let lichess = lichess::Client::new();
 

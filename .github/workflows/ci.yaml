@@ -78,4 +78,5 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: ${{ github.repository_owner }}/${{ github.repository }}:${{ steps.get_version.outputs.VERSION }}, ${{ github.repository_owner }}/${{ github.repository }}:latest
+          registry: ghcr.io
+          tags: ${{ github.repository }}:${{ steps.get_version.outputs.VERSION }}, ${{ github.repository }}:latest

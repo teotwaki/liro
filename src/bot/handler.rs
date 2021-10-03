@@ -9,7 +9,7 @@ use crate::{
 use serenity::{
     async_trait,
     model::{
-        interactions::application_command::{ApplicationCommand, ApplicationCommandOptionType},
+        interactions::application_command::ApplicationCommand,
         {gateway::Ready, guild::Guild, prelude::*},
     },
     prelude::*,
@@ -137,18 +137,9 @@ impl EventHandler for Handler {
                 })
                 .create_application_command(|command| {
                     command.name("link").description(
-                        "Connects your lichess.org or chess.com account with Liro. Needed to update ratings.",
-                    ).create_option(|option| {
-                        option
-                            .required(true)
-                            .name("website")
-                            .description("The website you play chess on")
-                            .kind(ApplicationCommandOptionType::String)
-                            .add_string_choice("Lichess is a free and open-source Internet chess server", "lichess")
-                            .add_string_choice("Chess.com is an internet chess server, internet forum and social networking website.", "chesscom")
-                    })
+                        "Connects your lichess.org account with Liro. Needed to update ratings.",
+                    )
                 })
-
         })
         .await;
 

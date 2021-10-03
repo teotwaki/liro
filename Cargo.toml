@@ -1,6 +1,6 @@
 [package]
 name = "liro"
-version = "0.7.5"
+version = "0.8.0"
 authors = ["Sebastian Lauwers <sl@mailicio.us"]
 edition = "2018"
 

@@ -113,22 +113,19 @@ async fn account(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = *msg.guild_id.unwrap().as_u64();
     let discord_id = *msg.author.id.as_u64();
 
-    let response = link(&ctx, guild_id, discord_id).await?;
+    let response = link(ctx, guild_id, discord_id).await?;
 
-    match response {
-        Response::PrivateSentence(whisper) => {
-            let message = match msg.author.dm(&ctx, |m| m.content(whisper)).await {
-                Ok(_) => "Please check your DMs :)",
-                Err(why) => {
-                    debug!("Failed to send DM to user {}: {}", discord_id, why);
-                    "I wasn't able to send you a DM. Could you please allow me to message you so I can verify your lichess account?"
-                }
-            };
-            msg.channel_id
-                .send_message(&ctx, |m| m.content(message))
-                .await?;
-        }
-        _ => {}
+    if let Response::PrivateSentence(whisper) = response {
+        let message = match msg.author.dm(&ctx, |m| m.content(whisper)).await {
+            Ok(_) => "Please check your DMs :)",
+            Err(why) => {
+                debug!("Failed to send DM to user {}: {}", discord_id, why);
+                "I wasn't able to send you a DM. Could you please allow me to message you so I can verify your lichess account?"
+            }
+        };
+        msg.channel_id
+            .send_message(&ctx, |m| m.content(message))
+            .await?;
     }
 
     Ok(())

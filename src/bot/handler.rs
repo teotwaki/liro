@@ -1,7 +1,7 @@
 use super::run::{PoolContainer, RoleManagerContainer};
 use crate::{
     bot::{
-        commands::rating_update::{update_ratings, Response as CommandResponse},
+        commands::{account::link, rating_update::update_ratings, Response as CommandResponse},
         rating_range::RatingRange,
     },
     models,
@@ -140,6 +140,7 @@ impl EventHandler for Handler {
                         "Connects your lichess.org or chess.com account with Liro. Needed to update ratings.",
                     ).create_option(|option| {
                         option
+                            .required(true)
                             .name("website")
                             .description("The website you play chess on")
                             .kind(ApplicationCommandOptionType::String)
@@ -178,21 +179,26 @@ impl EventHandler for Handler {
             );
             let command_response = match command.data.name.as_str() {
                 "rating" => update_ratings(&ctx, guild_id, discord_id).await,
+                "link" => link(&ctx, guild_id, discord_id).await,
                 _ => unreachable!(),
             };
 
             if let Err(why) = command
                 .create_interaction_response(&ctx.http, |response| {
-                    response
-                        .kind(InteractionResponseType::ChannelMessageWithSource)
-                        .interaction_response_data(|message| match command_response {
-                            Ok(CommandResponse::Embed(e)) => message.add_embed(e),
-                            Ok(CommandResponse::Sentence(s)) => message.content(s),
-                            Err(why) => {
-                                error!("Error handling command: {}", why);
-                                message.content("Internal bot error. @teotwaki, I'm scared.")
-                            }
-                        })
+                    response.interaction_response_data(|message| match command_response {
+                        Ok(CommandResponse::Embed(e)) => message.add_embed(e),
+                        Ok(CommandResponse::PrivateEmbed(e)) => message
+                            .add_embed(e)
+                            .flags(InteractionApplicationCommandCallbackDataFlags::EPHEMERAL),
+                        Ok(CommandResponse::Sentence(s)) => message.content(s),
+                        Ok(CommandResponse::PrivateSentence(s)) => message
+                            .content(s)
+                            .flags(InteractionApplicationCommandCallbackDataFlags::EPHEMERAL),
+                        Err(why) => {
+                            error!("Error handling command: {}", why);
+                            message.content("Internal bot error. @teotwaki, I'm scared.")
+                        }
+                    })
                 })
                 .await
             {

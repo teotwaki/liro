@@ -1,28 +1,13 @@
+use super::{Response, Result};
 use crate::{
     bot::run::{LichessClientContainer, PoolContainer, RoleManagerContainer},
     lichess::Format,
-    models::{self, User},
+    models::User,
 };
 use serenity::{builder::CreateEmbed, model::prelude::*, prelude::*};
 use strum::IntoEnumIterator;
-use thiserror::Error;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
-
-pub enum Response {
-    Embed(CreateEmbed),
-    Sentence(String),
-}
-
-#[derive(Error, Debug)]
-pub enum Error {
-    #[error("model error: {0}")]
-    Model(#[from] models::Error),
-    #[error("Discord error: {0}")]
-    Discord(#[from] SerenityError),
-}
-
-pub type Result<T> = std::result::Result<T, Error>;
 
 async fn update_rating_roles(
     ctx: &Context,

@@ -1,4 +1,4 @@
-use super::rating_update::{update_ratings, Response as RatingUpdateResponse};
+use super::{rating_update::update_ratings, Response, Result};
 use crate::{
     bot::run::{PoolContainer, RoleManagerContainer},
     models::{Challenge, User},
@@ -86,15 +86,11 @@ async fn gdpr(ctx: &Context, msg: &Message) -> CommandResult {
     Ok(())
 }
 
-#[command]
-async fn account(ctx: &Context, msg: &Message) -> CommandResult {
-    trace!("account() called");
-    let guild_id = *msg.guild_id.unwrap().as_u64();
-    let discord_id = *msg.author.id.as_u64();
-
+pub async fn link(ctx: &Context, guild_id: u64, discord_id: u64) -> Result<Response> {
+    trace!("link() called");
     info!(
-        "Handling account command for {} (id={})",
-        msg.author.name, discord_id
+        "Handling link command for discord_id={} in guild_id={}",
+        discord_id, guild_id,
     );
     let pool;
     {
@@ -108,17 +104,32 @@ async fn account(ctx: &Context, msg: &Message) -> CommandResult {
         challenge.lichess_url()
     );
 
-    let message = match msg.author.dm(&ctx, |m| m.content(whisper)).await {
-        Ok(_) => "Please check your DMs :)",
-        Err(e) => {
-            warn!("Failed to send DM to user {}: {}", discord_id, e);
-            "I wasn't able to send you a DM. Could you please allow me to message you so I can verify your lichess account?"
-        }
-    };
+    Ok(Response::PrivateSentence(whisper))
+}
 
-    msg.channel_id
-        .send_message(&ctx, |m| m.content(message))
-        .await?;
+#[command]
+async fn account(ctx: &Context, msg: &Message) -> CommandResult {
+    trace!("account() called");
+    let guild_id = *msg.guild_id.unwrap().as_u64();
+    let discord_id = *msg.author.id.as_u64();
+
+    let response = link(&ctx, guild_id, discord_id).await?;
+
+    match response {
+        Response::PrivateSentence(whisper) => {
+            let message = match msg.author.dm(&ctx, |m| m.content(whisper)).await {
+                Ok(_) => "Please check your DMs :)",
+                Err(why) => {
+                    debug!("Failed to send DM to user {}: {}", discord_id, why);
+                    "I wasn't able to send you a DM. Could you please allow me to message you so I can verify your lichess account?"
+                }
+            };
+            msg.channel_id
+                .send_message(&ctx, |m| m.content(message))
+                .await?;
+        }
+        _ => {}
+    }
 
     Ok(())
 }
@@ -134,15 +145,16 @@ async fn rating(ctx: &Context, msg: &Message) -> CommandResult {
     );
 
     match update_ratings(ctx, guild_id, discord_id).await? {
-        RatingUpdateResponse::Embed(e) => {
+        Response::Embed(e) => {
             msg.channel_id
                 .send_message(&ctx, |m| m.set_embed(e))
-                .await?
+                .await?;
         }
-        RatingUpdateResponse::Sentence(s) => {
-            msg.channel_id.send_message(&ctx, |m| m.content(s)).await?
+        Response::Sentence(s) => {
+            msg.channel_id.send_message(&ctx, |m| m.content(s)).await?;
         }
-    };
+        _ => {}
+    }
 
     Ok(())
 }

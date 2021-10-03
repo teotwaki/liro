@@ -68,6 +68,10 @@ pub async fn run(pool: &Pool, lichess: &lichess::Client) {
 
     // Configure the client with your Discord bot token in the environment.
     let token = env::var("DISCORD_TOKEN").expect("Expected a token in the environment");
+    let application_id = env::var("APPLICATION_ID")
+        .expect("Expected to find the APPLICATION_ID environment variable")
+        .parse()
+        .expect("Expected the APPLICATION_ID environment variable to be an integer");
 
     let http = Http::new_with_token(&token);
 
@@ -102,6 +106,7 @@ pub async fn run(pool: &Pool, lichess: &lichess::Client) {
     let mut client = Client::builder(&token)
         .framework(framework)
         .event_handler(Handler {})
+        .application_id(application_id)
         .intents(
             GatewayIntents::DIRECT_MESSAGES
                 | GatewayIntents::GUILD_MESSAGES

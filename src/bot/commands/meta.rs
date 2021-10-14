@@ -5,14 +5,6 @@ use serenity::{
 };
 
 #[command]
-async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
-    trace!("ping() called");
-    msg.channel_id.say(&ctx.http, "Pong!").await?;
-
-    Ok(())
-}
-
-#[command]
 async fn help(ctx: &Context, msg: &Message) -> CommandResult {
     trace!("help() called");
     let message = "Hi, I'm liro!\n\

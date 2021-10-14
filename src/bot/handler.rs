@@ -1,7 +1,11 @@
 use super::run::{PoolContainer, RoleManagerContainer};
 use crate::{
     bot::{
-        commands::{account::link, rating_update::update_ratings, Response as CommandResponse},
+        commands::{
+            account::{link, unlink},
+            rating_update::update_ratings,
+            Response as CommandResponse,
+        },
         rating_range::RatingRange,
     },
     models,
@@ -140,6 +144,11 @@ impl EventHandler for Handler {
                         "Connects your lichess.org account with Liro. Needed to update ratings.",
                     )
                 })
+                .create_application_command(|command| {
+                    command.name("unlink").description(
+                        "Deletes all your information from the bot and removes your Discord roles.",
+                    )
+                })
         })
         .await;
 
@@ -171,6 +180,7 @@ impl EventHandler for Handler {
             let command_response = match command.data.name.as_str() {
                 "rating" => update_ratings(&ctx, guild_id, discord_id).await,
                 "link" => link(&ctx, guild_id, discord_id).await,
+                "unlink" => unlink(&ctx, guild_id, discord_id).await,
                 _ => unreachable!(),
             };
 

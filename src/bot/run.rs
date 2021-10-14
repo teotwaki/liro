@@ -42,7 +42,7 @@ impl TypeMapKey for LichessClientContainer {
 }
 
 #[group]
-#[commands(ping, help, account, rating, gdpr)]
+#[commands(help, account, rating, gdpr)]
 struct General;
 
 #[hook]

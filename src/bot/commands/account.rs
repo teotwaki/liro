@@ -9,11 +9,8 @@ use serenity::{
     prelude::*,
 };
 
-#[command]
-async fn gdpr(ctx: &Context, msg: &Message) -> CommandResult {
-    trace!("gdpr() called");
-    let guild_id = *msg.guild_id.unwrap().as_u64();
-    let discord_id = *msg.author.id.as_u64();
+pub async fn unlink(ctx: &Context, guild_id: u64, discord_id: u64) -> Result<Response> {
+    trace!("unlink() called");
 
     info!(
         "Deleting data for discord_id={} in guild_id={}",
@@ -28,7 +25,7 @@ async fn gdpr(ctx: &Context, msg: &Message) -> CommandResult {
         rm = data.get::<RoleManagerContainer>().unwrap().clone();
     }
 
-    match User::find(&pool, guild_id, discord_id).await {
+    let response = match User::find(&pool, guild_id, discord_id).await {
         Ok(Some(mut user)) => {
             let member = ctx
                 .http
@@ -60,27 +57,31 @@ async fn gdpr(ctx: &Context, msg: &Message) -> CommandResult {
 
             user.delete(&pool).await?;
 
-            msg.channel_id
-                .send_message(&ctx, |m| {
-                    m.content("User information deleted. Toodles! :wave:")
-                })
-                .await?;
+            Response::PrivateSentence("User information deleted. Toodles! :wave:".to_string())
         }
         Ok(None) => {
-            msg.channel_id
-                .send_message(&ctx, |m| {
-                    m.content("I don't see any data to delete:question:")
-                })
-                .await?;
+            Response::PrivateSentence("I don't see any data to delete:question:".to_string())
         }
         Err(why) => {
             error!("Unable to query database: {}", why);
-            msg.channel_id
-                .send_message(&ctx, |m| {
-                    m.content("Internal bot error. @teotwaki, I'm scared.")
-                })
-                .await?;
+            Response::Sentence("Internal bot error. @teotwaki, I'm scared.".to_string())
         }
+    };
+
+    Ok(response)
+}
+
+#[command]
+async fn gdpr(ctx: &Context, msg: &Message) -> CommandResult {
+    trace!("gdpr() called");
+    let guild_id = *msg.guild_id.unwrap().as_u64();
+    let discord_id = *msg.author.id.as_u64();
+
+    match unlink(ctx, guild_id, discord_id).await? {
+        Response::PrivateSentence(s) | Response::Sentence(s) => {
+            msg.channel_id.send_message(&ctx, |m| m.content(s)).await?;
+        }
+        _ => {}
     }
 
     Ok(())

@@ -162,7 +162,11 @@ pub async fn update_ratings(ctx: &Context, guild_id: u64, discord_id: u64) -> Re
 
             Ok(Response::Embed(embed))
         }
-        Ok(None) => Ok(Response::Sentence("Couldn't find a lichess user associated with your account. Please use the `ohnomy account` command first.".to_string())),
+        Ok(None) => Ok(Response::Sentence(
+            "Couldn't find a lichess user associated with your account. Please use the `ohnomy \
+            account` (or `/link`) command first."
+                .to_string(),
+        )),
         Err(why) => {
             error!("Unable to query database: {}", why);
             Ok(Response::Sentence("Internal bot error. @teotwaki, I'm scared.".to_string()))

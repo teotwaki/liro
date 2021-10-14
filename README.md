@@ -9,6 +9,16 @@ server.
 This project also aims to increase rating support to not only lichess accounts,
 but also chesscom.
 
+# Features
+
+- Application commands (`/link`, `/rating`, `/unlink`),
+- Prefix commands (`ohnomy rating`, `oh no my account`, etc),
+- Automatic role detection (heuristics-based),
+- Automatic role assignment based on ratings (only bullet, blitz, classical and
+  rapid are monitored),
+- OAuth account verification for [lichess](https://lichess.org),
+- Public [dashboard](https://liro.wedrop.it/dashboard).
+
 # Invite
 
 ***Please note***: Liro is still being developped heavily. We do not provide
@@ -47,11 +57,3 @@ Any other value is ignored. For the rating range, 3 formats are accepted:
 Any 3 or 4 numerical digit value is valid. The bot doesn't understand the
 roles, it just applies basic rules to guess which role to apply. If you create
 crazy overlapping roles, you will get duplicate matches.
-
-# Todo
-
-- Implement application commands
-- Add automated role creation
-- Implement chesscom support
-- Implement auth token for lichess API to get better rate limits
-- Handle sharding

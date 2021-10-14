@@ -103,7 +103,9 @@ pub async fn update_ratings(ctx: &Context, guild_id: u64, discord_id: u64) -> Re
                 update_rating_roles(ctx, guild_id, discord_id, rating_roles, removeable_roles)
                     .await?;
 
-            let mut embed = CreateEmbed { ..Default::default() };
+            let mut embed = CreateEmbed {
+                ..Default::default()
+            };
 
             for format in Format::iter() {
                 let old_rating = old_ratings.get(&format);
@@ -169,7 +171,9 @@ pub async fn update_ratings(ctx: &Context, guild_id: u64, discord_id: u64) -> Re
         )),
         Err(why) => {
             error!("Unable to query database: {}", why);
-            Ok(Response::Sentence("Internal bot error. @teotwaki, I'm scared.".to_string()))
+            Ok(Response::Sentence(
+                "Internal bot error. @teotwaki, I'm scared.".to_string(),
+            ))
         }
     }
 }

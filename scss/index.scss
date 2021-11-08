@@ -1,0 +1,105 @@
+@import 'button';
+
+$dark-mode: (
+  "surface": #121212,
+  "dark-primary": #1f1b24,
+);
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  color: #fff;
+  font-family: "Lato", sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: map-get($dark-mode, surface);
+}
+
+// nav{
+//     position: sticky;
+//     top: 0;
+//     background-color:map-get($dark-mode,dark-primary) ;
+//     display:flex;
+//     justify-content:space-between;
+//     align-items:center;
+
+//         li{
+//             list-style: none;
+
+//         }
+// }
+
+.navbar {
+  background-color: map-get($dark-mode, dark-primary);
+  padding: 10px 0;
+  ul {
+    display: flex;
+  }
+
+  li {
+    list-style: none;
+  }
+
+  a {
+    text-decoration: none;
+    padding: 20px;
+    margin: 0 5px;
+  }
+
+  a:hover {
+    border-bottom: 1px solid white;
+    background-color: hsla(267, 13%, 17%, 0.9);
+    transition: hover 500ms;
+    cursor: pointer;
+  }
+}
+
+
+
+.nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+header {
+  font-weight: bold;
+  font-size: 1.5rem;
+  text-align: center;
+}
+
+.logo {
+  font-weight: 500;
+  margin-left: 20px;
+}
+
+a:hover {
+  text-decoration: none;
+}
+
+.what{
+  max-width: 26rem;
+  margin: auto;
+  margin-bottom: 25px;
+  margin-top:20px;
+}
+
+
+.features{
+    max-width: 26rem;
+    margin: auto;
+    margin-bottom: 25px;
+}
+
+//  TODO - Use mixin instead of indivdiual setting
+.invite{
+    header{
+        margin-bottom:10px; 
+    }
+}

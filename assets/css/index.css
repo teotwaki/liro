@@ -1,0 +1,105 @@
+.btn {
+  padding: 15px 20px;
+  background-color: #302a36;
+  border: none;
+  display: block;
+  margin: auto;
+  -webkit-box-shadow: -2px 2px grey;
+          box-shadow: -2px 2px grey;
+}
+
+.btn:active {
+  -webkit-transform: scale(1.1);
+          transform: scale(1.1);
+  text-decoration: underline;
+}
+
+* {
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  color: #fff;
+  font-family: "Lato", sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #121212;
+}
+
+.navbar {
+  background-color: #1f1b24;
+  padding: 10px 0;
+}
+
+.navbar ul {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.navbar li {
+  list-style: none;
+}
+
+.navbar a {
+  text-decoration: none;
+  padding: 20px;
+  margin: 0 5px;
+}
+
+.navbar a:hover {
+  border-bottom: 1px solid white;
+  background-color: rgba(43, 38, 49, 0.9);
+  -webkit-transition: hover 500ms;
+  transition: hover 500ms;
+  cursor: pointer;
+}
+
+.nav-container {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify;
+      -ms-flex-pack: justify;
+          justify-content: space-between;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+}
+
+header {
+  font-weight: bold;
+  font-size: 1.5rem;
+  text-align: center;
+}
+
+.logo {
+  font-weight: 500;
+  margin-left: 20px;
+}
+
+a:hover {
+  text-decoration: none;
+}
+
+.what {
+  max-width: 26rem;
+  margin: auto;
+  margin-bottom: 25px;
+  margin-top: 20px;
+}
+
+.features {
+  max-width: 26rem;
+  margin: auto;
+  margin-bottom: 25px;
+}
+
+.invite header {
+  margin-bottom: 10px;
+}

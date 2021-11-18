@@ -31,12 +31,17 @@ pub async fn run(pool: &Pool, lichess: &lichess::Client) {
         .and(with_db(pool.clone()))
         .and_then(dashboard_handler);
 
+    let empty_route = warp::path::end()
+        .and(with_db(pool.clone()))
+        .and_then(dashboard_handler);
+
     let routes = warp::get()
         .and(
             oauth_callback_route
                 .or(bot_invited_route)
                 .or(assets_route)
-                .or(dashboard_route),
+                .or(dashboard_route)
+                .or(empty_route),
         )
         .with(warp::log("web"))
         .recover(error::handle_rejection);

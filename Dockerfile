@@ -1,20 +1,31 @@
 # Build stage
-FROM ekidd/rust-musl-builder:1.55.0 AS builder
+FROM rust:1.55 AS builder
 
-RUN USER=root cargo new /home/rust/src/liro
-WORKDIR /home/rust/src/liro
+RUN \
+  apt-get update \
+  && apt-get install -y \
+    musl-tools \
+    upx \
+  && rustup target add x86_64-unknown-linux-musl \
+  && cargo new /src
+WORKDIR /src
+
+# Cache dependencies. This will be invalidated with every version bump.
 COPY Cargo.toml Cargo.lock ./
-RUN cargo build --release
+RUN cargo build --release --target x86_64-unknown-linux-musl
 
+# Build actual library & application
 COPY src ./src
 COPY templates ./templates
-RUN cargo build --release
+RUN \
+  cargo build --release --target x86_64-unknown-linux-musl \
+  && upx --lzma target/x86_64-unknown-linux-musl/release/liro
 
-FROM debian:stable-slim
-RUN apt-get update && apt-get install -y ca-certificates && apt-get clean
-COPY assets /assets
-COPY --from=builder /home/rust/src/liro/target/x86_64-unknown-linux-musl/release/liro /app
-USER 1000
+FROM scratch
 ENV RUST_LOG=info
 ENV RUST_BACKTRACE=full
+
+COPY assets /assets
+COPY --from=builder /src/target/x86_64-unknown-linux-musl/release/liro /app
+
 CMD ["./app"]

@@ -297,22 +297,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "core-foundation"
-version = "0.9.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0a89e2ae426ea83155dccf10c0fa6b1463ef6d5fcb44cee0b224a408fa640a62"
-dependencies = [
- "core-foundation-sys",
- "libc",
-]
-
-[[package]]
-name = "core-foundation-sys"
-version = "0.8.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ea221b5284a47e40033bf9b66f35f984ec0ea2931eb03505246cd27a963f981b"
-
-[[package]]
 name = "cpufeatures"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -390,21 +374,6 @@ name = "fnv"
 version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3f9eec918d3f24069decb9af1554cad7c880e2da24a9afd88aca000531ab82c1"
-
-[[package]]
-name = "foreign-types"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f6f339eb8adc052cd2ca78910fda869aefa38d22d5cb648e6485e4d3fc06f3b1"
-dependencies = [
- "foreign-types-shared",
-]
-
-[[package]]
-name = "foreign-types-shared"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "00b0228411908ca8685dba7fc2cdd70ec9990a6e753e89b6ac91a84c40fbaf4b"
 
 [[package]]
 name = "form_urlencoded"
@@ -699,19 +668,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "hyper-tls"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d6183ddfa99b85da61a140bea0efc93fdf56ceaa041b37d553518030827f9905"
-dependencies = [
- "bytes 1.1.0",
- "hyper",
- "native-tls",
- "tokio",
- "tokio-native-tls",
-]
-
-[[package]]
 name = "idna"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -807,7 +763,7 @@ checksum = "3cb00336871be5ed2c8ed44b60ae9959dc5b9f08539422ed43f09e34ecaeba21"
 
 [[package]]
 name = "liro"
-version = "0.5.0"
+version = "0.9.1"
 dependencies = [
  "askama",
  "chrono",
@@ -816,7 +772,6 @@ dependencies = [
  "log",
  "mobc",
  "mobc-redis",
- "openssl-probe",
  "pkce",
  "pretty_env_logger",
  "rand 0.8.4",
@@ -966,24 +921,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "native-tls"
-version = "0.2.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "48ba9f7719b5a0f42f338907614285fb5fd70e53858141f69898a1fb7203b24d"
-dependencies = [
- "lazy_static",
- "libc",
- "log",
- "openssl",
- "openssl-probe",
- "openssl-sys",
- "schannel",
- "security-framework",
- "security-framework-sys",
- "tempfile",
-]
-
-[[package]]
 name = "nom"
 version = "6.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1006,69 +943,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "num"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "43db66d1170d347f9a065114077f7dccb00c1b9478c89384490a3425279a4606"
-dependencies = [
- "num-bigint",
- "num-complex",
- "num-integer",
- "num-iter",
- "num-rational",
- "num-traits",
-]
-
-[[package]]
-name = "num-bigint"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "76e97c412795abf6c24ba30055a8f20642ea57ca12875220b854cfa501bf1e48"
-dependencies = [
- "autocfg",
- "num-integer",
- "num-traits",
-]
-
-[[package]]
-name = "num-complex"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "26873667bbbb7c5182d4a37c1add32cdf09f841af72da53318fdb81543c15085"
-dependencies = [
- "num-traits",
-]
-
-[[package]]
 name = "num-integer"
 version = "0.1.44"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d2cc698a63b549a70bc047073d2949cce27cd1c7b0a4a862d08a8031bc2801db"
 dependencies = [
  "autocfg",
- "num-traits",
-]
-
-[[package]]
-name = "num-iter"
-version = "0.1.42"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b2021c8337a54d21aca0d59a92577a029af9431cb59b909b03252b9c164fad59"
-dependencies = [
- "autocfg",
- "num-integer",
- "num-traits",
-]
-
-[[package]]
-name = "num-rational"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d41702bd167c2df5520b384281bc111a4b5efcf7fbc4c9c222c815b07e0a6a6a"
-dependencies = [
- "autocfg",
- "num-bigint",
- "num-integer",
  "num-traits",
 ]
 
@@ -1102,39 +982,6 @@ name = "opaque-debug"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
-
-[[package]]
-name = "openssl"
-version = "0.10.36"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8d9facdb76fec0b73c406f125d44d86fdad818d66fef0531eec9233ca425ff4a"
-dependencies = [
- "bitflags",
- "cfg-if",
- "foreign-types",
- "libc",
- "once_cell",
- "openssl-sys",
-]
-
-[[package]]
-name = "openssl-probe"
-version = "0.1.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "28988d872ab76095a6e6ac88d99b54fd267702734fd7ffe610ca27f533ddb95a"
-
-[[package]]
-name = "openssl-sys"
-version = "0.9.66"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1996d2d305e561b70d1ee0c53f1542833f4e1ac6ce9a6708b6ff2738ca67dc82"
-dependencies = [
- "autocfg",
- "cc",
- "libc",
- "pkg-config",
- "vcpkg",
-]
 
 [[package]]
 name = "parking_lot"
@@ -1209,12 +1056,6 @@ dependencies = [
  "rand 0.7.3",
  "sha2",
 ]
-
-[[package]]
-name = "pkg-config"
-version = "0.3.19"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3831453b3449ceb48b6d9c7ad7c96d5ea673e9b470a1dc578c2ce6521230884c"
 
 [[package]]
 name = "ppv-lite86"
@@ -1435,14 +1276,12 @@ dependencies = [
  "http-body",
  "hyper",
  "hyper-rustls",
- "hyper-tls",
  "ipnet",
  "js-sys",
  "lazy_static",
  "log",
  "mime",
  "mime_guess",
- "native-tls",
  "percent-encoding",
  "pin-project-lite",
  "rustls",
@@ -1450,7 +1289,6 @@ dependencies = [
  "serde_json",
  "serde_urlencoded",
  "tokio",
- "tokio-native-tls",
  "tokio-rustls",
  "tokio-util",
  "url",
@@ -1502,16 +1340,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ef703b7cb59335eae2eb93ceb664c0eb7ea6bf567079d843e09420219668e072"
 
 [[package]]
-name = "schannel"
-version = "0.1.19"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8f05ba609c234e60bee0d547fe94a4c7e9da733d1c962cf6e59efa4cd9c8bc75"
-dependencies = [
- "lazy_static",
- "winapi",
-]
-
-[[package]]
 name = "scoped-tls"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1531,30 +1359,6 @@ checksum = "b362b83898e0e69f38515b82ee15aa80636befe47c3b6d3d89a911e78fc228ce"
 dependencies = [
  "ring",
  "untrusted",
-]
-
-[[package]]
-name = "security-framework"
-version = "2.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5b9bd29cdffb8875b04f71c51058f940cf4e390bbfd2ce669c4f22cd70b492a5"
-dependencies = [
- "bitflags",
- "core-foundation",
- "core-foundation-sys",
- "libc",
- "num",
- "security-framework-sys",
-]
-
-[[package]]
-name = "security-framework-sys"
-version = "2.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "19133a286e494cc3311c165c4676ccb1fd47bed45b55f9d71fbd784ad4cea6f8"
-dependencies = [
- "core-foundation-sys",
- "libc",
 ]
 
 [[package]]
@@ -1876,16 +1680,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tokio-native-tls"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f7d995660bd2b7f8c1568414c1126076c13fbb725c40112dc0120b78eb9b717b"
-dependencies = [
- "native-tls",
- "tokio",
-]
-
-[[package]]
 name = "tokio-rustls"
 version = "0.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2155,12 +1949,6 @@ name = "uwl"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f4bf03e0ca70d626ecc4ba6b0763b934b6f2976e8c744088bb3c1d646fbb1ad0"
-
-[[package]]
-name = "vcpkg"
-version = "0.2.15"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "accd4ea62f7bb7a82fe23066fb0957d48ef677f6eeb8215f372f52e48bb32426"
 
 [[package]]
 name = "version_check"

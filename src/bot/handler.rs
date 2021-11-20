@@ -1,8 +1,21 @@
 use super::run::{PoolContainer, RoleManagerContainer};
-use crate::{bot::rating_range::RatingRange, models};
+use crate::{
+    bot::{
+        commands::{
+            account::{link, unlink},
+            rating_update::update_ratings,
+            Response as CommandResponse,
+        },
+        rating_range::RatingRange,
+    },
+    models,
+};
 use serenity::{
     async_trait,
-    model::{gateway::Ready, guild::Guild, prelude::*},
+    model::{
+        interactions::application_command::ApplicationCommand,
+        {gateway::Ready, guild::Guild, prelude::*},
+    },
     prelude::*,
 };
 
@@ -115,8 +128,83 @@ impl EventHandler for Handler {
     // private channels, and more.
     //
     // In this case, just print what the current user's username is.
-    async fn ready(&self, _: Context, ready: Ready) {
+    async fn ready(&self, ctx: Context, ready: Ready) {
         trace!("Handler::ready() called");
         info!("{} is now online", ready.user.tag());
+
+        let commands = ApplicationCommand::set_global_application_commands(&ctx.http, |commands| {
+            commands
+                .create_application_command(|command| {
+                    command.name("rating").description(
+                        "Retrieves your updated lichess ratings and gives you Discord roles",
+                    )
+                })
+                .create_application_command(|command| {
+                    command.name("link").description(
+                        "Connects your lichess.org account with Liro. Needed to update ratings.",
+                    )
+                })
+                .create_application_command(|command| {
+                    command.name("unlink").description(
+                        "Deletes all your information from the bot and removes your Discord roles.",
+                    )
+                })
+        })
+        .await;
+
+        match commands {
+            Ok(commands) => debug!(
+                "Installed the following global application commands: {:?}",
+                commands
+            ),
+            Err(why) => error!("{}", why),
+        }
+    }
+
+    async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
+        trace!("Handler::interaction_create()");
+        if let Interaction::ApplicationCommand(command) = interaction {
+            let guild_id = match command.guild_id {
+                Some(guild_id) => *guild_id.as_u64(),
+                None => {
+                    error!("Failed to handle interaction: missing guild_id in command");
+                    return;
+                }
+            };
+
+            let discord_id = *command.user.id.as_u64();
+            info!(
+                "Handling application command '/{}' for discord_id={} in guild_id={}",
+                command.data.name, discord_id, guild_id
+            );
+            let command_response = match command.data.name.as_str() {
+                "rating" => update_ratings(&ctx, guild_id, discord_id).await,
+                "link" => link(&ctx, guild_id, discord_id).await,
+                "unlink" => unlink(&ctx, guild_id, discord_id).await,
+                _ => unreachable!(),
+            };
+
+            if let Err(why) = command
+                .create_interaction_response(&ctx.http, |response| {
+                    response.interaction_response_data(|message| match command_response {
+                        Ok(CommandResponse::Embed(e)) => message.add_embed(e),
+                        Ok(CommandResponse::PrivateEmbed(e)) => message
+                            .add_embed(e)
+                            .flags(InteractionApplicationCommandCallbackDataFlags::EPHEMERAL),
+                        Ok(CommandResponse::Sentence(s)) => message.content(s),
+                        Ok(CommandResponse::PrivateSentence(s)) => message
+                            .content(s)
+                            .flags(InteractionApplicationCommandCallbackDataFlags::EPHEMERAL),
+                        Err(why) => {
+                            error!("Error handling command: {}", why);
+                            message.content("Internal bot error. @teotwaki, I'm scared.")
+                        }
+                    })
+                })
+                .await
+            {
+                error!("Cannot respond to slash command: {}", why);
+            }
+        }
     }
 }

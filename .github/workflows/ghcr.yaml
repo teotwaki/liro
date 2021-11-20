@@ -1,0 +1,30 @@
+name: GHCR
+
+on:
+  push:
+    tags: '*'
+
+jobs:
+  package:
+    name: Docker image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get the version
+        id: get_version
+        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          tags: ghcr.io/${{ github.repository }}:${{ steps.get_version.outputs.VERSION }}, ghcr.io/${{ github.repository }}:latest

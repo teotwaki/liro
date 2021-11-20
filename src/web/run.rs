@@ -43,7 +43,7 @@ pub async fn run(pool: &Pool, lichess: &lichess::Client) {
                 .or(bot_invited_route)
                 .or(assets_route)
                 .or(dashboard_route)
-                .or(empty_route),
+                .or(empty_route)
                 .or(invite_route),
 
         )

@@ -2,7 +2,7 @@
 name = "liro"
 version = "0.9.1"
 authors = ["Sebastian Lauwers <sl@mailicio.us"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 dotenv = "0.15"

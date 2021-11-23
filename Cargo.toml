@@ -24,8 +24,6 @@ mobc = "0.7"
 mobc-redis = "0.7"
 
 warp = "0.3"
-tracing = "0.1"
-tracing-subscriber = "0.2"
 askama = "0.10"
 
 [dependencies.serenity]

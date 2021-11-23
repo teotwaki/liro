@@ -14,8 +14,6 @@ use serenity::{
     prelude::*,
 };
 use std::{collections::HashSet, env, sync::Arc};
-use tracing::{error, info};
-use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
 pub struct ShardManagerContainer;
 
@@ -60,11 +58,6 @@ async fn unknown_command(ctx: &Context, msg: &Message, unknown_command_name: &st
 
 pub async fn run(pool: &Pool, lichess: &lichess::Client) {
     trace!("run() called");
-    let subscriber = FmtSubscriber::builder()
-        .with_env_filter(EnvFilter::from_default_env())
-        .finish();
-
-    tracing::subscriber::set_global_default(subscriber).expect("Failed to start the logger");
 
     // Configure the client with your Discord bot token in the environment.
     let token = env::var("DISCORD_TOKEN").expect("Expected a token in the environment");

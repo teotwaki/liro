@@ -21,7 +21,7 @@ but also chesscom.
 
 # Invite
 
-***Please note***: Liro is still being developped heavily. We do not provide
+***Please note***: Liro is still being developed heavily. We do not provide
 uptime guarantees, and things related to role management might break in the
 near future. In addition, you might have to re-invite the bot in the future to
 add/remove permissions due to the changes that Discord is making to

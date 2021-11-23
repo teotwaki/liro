@@ -17,8 +17,8 @@ pkce = "0.1"
 chrono = "0.4"
 regex = "1.5"
 lazy_static = "1.4"
-strum = "0.21"
-strum_macros = "0.21"
+strum = "0.23"
+strum_macros = "0.23"
 
 mobc = "0.7"
 mobc-redis = "0.7"
@@ -32,7 +32,7 @@ default-features = false
 features = ["client", "gateway", "rustls_backend", "model", "utils", "framework", "standard_framework", "unstable_discord_api"]
 
 [dependencies.tokio]
-version = "1.10"
+version = "1.14"
 features = ["macros", "rt-multi-thread", "signal"]
 
 [dependencies.serde]

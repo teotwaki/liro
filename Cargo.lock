@@ -743,7 +743,6 @@ name = "liro"
 version = "0.9.1"
 dependencies = [
  "askama",
- "chrono",
  "dotenv",
  "lazy_static",
  "log",

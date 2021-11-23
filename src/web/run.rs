@@ -1,7 +1,7 @@
 use super::{error, handlers::*};
 use crate::{db::Pool, lichess};
 use std::convert::Infallible;
-use warp::Filter;
+use warp::{http::Uri, Filter};
 
 fn with_db(pool: Pool) -> impl Filter<Extract = (Pool,), Error = Infallible> + Clone {
     trace!("with_db() called");
@@ -31,6 +31,8 @@ pub async fn run(pool: &Pool, lichess: &lichess::Client) {
         .and(with_db(pool.clone()))
         .and_then(dashboard_handler);
 
+    let empty_route = warp::path::end().map(|| warp::redirect(Uri::from_static("/dashboard")));
+
     let invite_route = warp::path("invite").and_then(invite_handler);
 
     let routes = warp::get()
@@ -39,6 +41,7 @@ pub async fn run(pool: &Pool, lichess: &lichess::Client) {
                 .or(bot_invited_route)
                 .or(assets_route)
                 .or(dashboard_route)
+                .or(empty_route)
                 .or(invite_route),
         )
         .with(warp::log("web"))

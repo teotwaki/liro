@@ -87,7 +87,12 @@ async fn gdpr(ctx: &Context, msg: &Message) -> CommandResult {
     Ok(())
 }
 
-pub async fn link(ctx: &Context, guild_id: u64, discord_id: u64) -> Result<Response> {
+pub async fn link(
+    ctx: &Context,
+    guild_id: u64,
+    discord_id: u64,
+    website: String,
+) -> Result<Response> {
     trace!("link() called");
     info!(
         "Handling link command for discord_id={} in guild_id={}",
@@ -114,7 +119,7 @@ async fn account(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = *msg.guild_id.unwrap().as_u64();
     let discord_id = *msg.author.id.as_u64();
 
-    let response = link(ctx, guild_id, discord_id).await?;
+    let response = link(ctx, guild_id, discord_id, "lichess".to_string()).await?;
 
     if let Response::PrivateSentence(whisper) = response {
         let message = match msg.author.dm(&ctx, |m| m.content(whisper)).await {

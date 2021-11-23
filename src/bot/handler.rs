@@ -13,7 +13,10 @@ use crate::{
 use serenity::{
     async_trait,
     model::{
-        interactions::application_command::ApplicationCommand,
+        interactions::application_command::{
+            ApplicationCommand, ApplicationCommandInteractionDataOptionValue,
+            ApplicationCommandOptionType,
+        },
         {gateway::Ready, guild::Guild, prelude::*},
     },
     prelude::*,
@@ -141,8 +144,16 @@ impl EventHandler for Handler {
                 })
                 .create_application_command(|command| {
                     command.name("link").description(
-                        "Connects your lichess.org account with Liro. Needed to update ratings.",
-                    )
+                        "Connects your lichess.org or chess.com account with Liro. Needed to update ratings.",
+                    ).create_option(|option| {
+                        option
+                            .name("website")
+                            .description("The website you would like to link against")
+                            .kind(ApplicationCommandOptionType::String)
+                            .required(true)
+                            .add_string_choice("lichess.org", "lichess")
+                            .add_string_choice("chess.com", "chesscom")
+                    })
                 })
                 .create_application_command(|command| {
                     command.name("unlink").description(
@@ -179,7 +190,22 @@ impl EventHandler for Handler {
             );
             let command_response = match command.data.name.as_str() {
                 "rating" => update_ratings(&ctx, guild_id, discord_id).await,
-                "link" => link(&ctx, guild_id, discord_id).await,
+                "link" => {
+                    let option = command
+                        .data
+                        .options
+                        .get(0)
+                        .unwrap()
+                        .resolved
+                        .as_ref()
+                        .unwrap();
+
+                    if let ApplicationCommandInteractionDataOptionValue::String(website) = option {
+                        link(&ctx, guild_id, discord_id, website.to_string()).await
+                    } else {
+                        return;
+                    }
+                }
                 "unlink" => unlink(&ctx, guild_id, discord_id).await,
                 _ => unreachable!(),
             };

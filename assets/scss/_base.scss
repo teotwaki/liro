@@ -1,0 +1,22 @@
+html{scroll-behavior: smooth;}
+
+body{
+    background-color: hsl(0, 0%, 7%); 
+    color:white;
+}
+
+a{
+    color:white;
+}
+
+.link{
+    text-decoration:underline;
+}
+
+.link:hover{
+    text-decoration: none;
+}
+
+.para{
+    max-width: 500px;
+}

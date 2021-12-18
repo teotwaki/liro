@@ -1,0 +1,14 @@
+{
+  "name": "liro",
+  "version": "1.0.0",
+  "description": "Liro is a Discord bot that follows in the footsteps of\r [Lichess-discord-bot](https://github.com/tvdhout/Lichess-discord-bot/), without\r necessarily aiming to replace it. The main pain point that this bot is trying\r to solve is automating the role assignment for denizens of the IM Rosen Discord\r server.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "sass": "^1.44.0"
+  }
+}

@@ -1,5 +1,6 @@
 use super::{Format, Result};
 use crate::config;
+use reqwest::header;
 use serde::Deserialize;
 use std::collections::HashMap;
 
@@ -59,9 +60,25 @@ impl Client {
     pub fn new() -> Client {
         trace!("Client::new() called");
 
-        Client {
-            http: reqwest::Client::new(),
+        let mut headers = header::HeaderMap::new();
+
+        if let Some(token) = config::lichess_token() {
+            match header::HeaderValue::from_str(&token) {
+                Ok(mut auth_value) => {
+                    auth_value.set_sensitive(true);
+
+                    headers.insert(header::AUTHORIZATION, auth_value);
+                }
+                Err(why) => error!("Invalid header value: {}", why),
+            }
         }
+
+        let http = reqwest::Client::builder()
+            .default_headers(headers)
+            .build()
+            .unwrap();
+
+        Client { http }
     }
 
     pub async fn validate_token<T>(&self, access_token: T) -> Result<LichessUser>

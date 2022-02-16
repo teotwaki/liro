@@ -27,7 +27,6 @@ struct AccessToken {
 
 #[derive(Debug, Clone, Copy, Deserialize)]
 struct FormatRating {
-    games: Option<i64>,
     rating: Option<i16>,
     prov: Option<bool>,
 }

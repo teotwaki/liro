@@ -1,4 +1,4 @@
-use std::env;
+use std::{env, process};
 
 fn db_host() -> Option<String> {
     trace!("db_host() called");
@@ -42,6 +42,20 @@ pub fn client_id() -> String {
             error!("Could not read CLIENT_ID environment variable: {}", e);
             warn!("Using default value liro-test-bot instead");
             "liro-test-bot".to_string()
+        }
+    }
+}
+
+pub fn lichess_token() -> String {
+    trace!("lichess_token() called");
+    match env::var("LICHESS_API_TOKEN") {
+        Ok(v) => v,
+        Err(e) => {
+            error!(
+                "Could not read LICHESS_API_TOKEN environment variable: {}",
+                e
+            );
+            process::exit(-1);
         }
     }
 }

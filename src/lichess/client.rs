@@ -61,15 +61,13 @@ impl Client {
 
         let mut headers = header::HeaderMap::new();
 
-        if let Some(token) = config::lichess_token() {
-            match header::HeaderValue::from_str(&token) {
-                Ok(mut auth_value) => {
-                    auth_value.set_sensitive(true);
+        match header::HeaderValue::from_str(&config::lichess_token()) {
+            Ok(mut auth_value) => {
+                auth_value.set_sensitive(true);
 
-                    headers.insert(header::AUTHORIZATION, auth_value);
-                }
-                Err(why) => error!("Invalid header value: {}", why),
+                headers.insert(header::AUTHORIZATION, auth_value);
             }
+            Err(why) => error!("Invalid header value: {}", why),
         }
 
         let http = reqwest::Client::builder()

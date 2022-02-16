@@ -1,4 +1,4 @@
-use std::env;
+use std::{env, process};
 
 fn db_host() -> Option<String> {
     trace!("db_host() called");
@@ -46,17 +46,16 @@ pub fn client_id() -> String {
     }
 }
 
-pub fn lichess_token() -> Option<String> {
+pub fn lichess_token() -> String {
     trace!("lichess_token() called");
-    match env::var("LICHESS_AUTH_TOKEN") {
-        Ok(v) => Some(v),
+    match env::var("LICHESS_API_TOKEN") {
+        Ok(v) => v,
         Err(e) => {
             error!(
-                "Could not read LICHESS_AUTH_TOKEN environment variable: {}",
+                "Could not read LICHESS_API_TOKEN environment variable: {}",
                 e
             );
-            warn!("Not using authenticated lichess API client. This may cause performance issues!");
-            None
+            process::exit(-1);
         }
     }
 }

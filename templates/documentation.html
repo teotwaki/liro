@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Liro | Official Documentation</title>
+    <link
+      rel="shortcut icon"
+      href="../assets/images/liro.webp"
+      type="image/x-icon"
+    />
+    <link rel="stylesheet" href="../assets/css/documentation.css" />
+  </head>
+  <body>
+    <div class="nav">
+      <h1>Liro</h1>
+      <nav>
+        <a href="#about">What is Liro</a>
+        <a href="#invite">Invite Liro to your server</a>
+        <a href="#features">Features</a>
+        <a href="#setup">Setup</a>
+      </nav>
+    </div>
+
+    <main class="content">
+      <div class="about" id="about">
+        <h2>What is Liro</h2>
+        <p>
+          Liro is a discord bot that connects your lichess account with discord
+          in order to give you rating roles. The project aims to add chess.com
+          support in the future.
+        </p>
+      </div>
+      <div class="invite" id="invite">
+        <h2>Invite Liro to your server</h2>
+        <p>
+          You can invite Liro to your server by using the hyperlink given below:
+        </p>
+        <a
+          href="https://discordapp.com/oauth2/authorize?client_id=715687989723183626&scope=bot&permissions=8"
+          >Add Liro to your server</a
+        >
+      </div>
+      <div class="features">
+        <h2>Features</h2>
+        <p>Liro has the following features:</p>
+        <ul>
+          <li>
+            Application commands
+            (<code>/link</code>,<code>/rating</code>,<code>/unlink</code>)
+          </li>
+          <li>
+            Prefix commands (<code>ohnomy</code>,<code>rating</code>,
+            <code>oh no my account</code>, etc)
+          </li>
+          <li>Automatic role detection (heuristics-based),</li>
+          <li>
+            Automatic role assignment based on ratings (only bullet, blitz,
+            classical and rapid are monitored),
+          </li>
+          <li>
+            OAuth account verification for
+            <a href="https://lichess.org" target="_blanck">lichess</a>,
+          </li>
+          <li>
+            Public
+            <a href="https://liro.wedrop.it/dashboard" target="_blanck"
+              >dashboard</a
+            >.
+          </li>
+        </ul>
+      </div>
+      <div class="setup">
+        <h2>Setup</h2>
+        <p>
+          You will need to create roles that Liro can use to hand out to people.
+          Colours and ordering are up to you, however the roles need to be under
+          the <code>liro</code> role in your server. Here is an example of how
+          roles could be setup:
+        </p>
+        <img src="../.images/role-sample.png" alt="">
+      </div>
+    </main>
+  </body>
+</html>

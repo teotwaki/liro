@@ -1,0 +1,41 @@
+@forward "vendors/reset";
+@use "utils/variables" as *;
+@use "utils/fonts" as *;
+@forward "components/all";
+
+body {
+  scroll-behavior: smooth;
+}
+
+.content {
+  position: absolute;
+  left: 12vw;
+  top:0;
+  // 
+  height:auto;
+  background-color: black;
+  color: white;
+  @include font(Poppins, 400);
+
+  h2 {
+    @include font(Lato, 400);
+    text-align: center;
+    font-size: 2.5em;
+  }
+
+  a {
+    color: white;
+    text-decoration: underline;
+
+    &:hover {
+      text-decoration: none;
+      transition: 1s ease-in-out;
+    }
+  }
+
+  code {
+    background-color: rgba(158, 167, 179, 0.4);
+    border-radius: 6px;
+    padding: 0.2em 0.4em;
+  }
+}

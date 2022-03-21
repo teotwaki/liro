@@ -1,0 +1,36 @@
+@use "../utils/fonts" as *;
+@use "../utils/variables" as *;
+.nav {
+  background: $light-black;
+  color: $white-700;
+
+  display: flex;
+  flex-direction: column;
+
+  width: 25vh;
+  height: 100vh;
+  position: fixed;
+  bottom:0;
+
+  
+  h1 {
+    @include font(Lato, 400);
+    text-align: center;
+  }
+
+  a{
+      display: block;
+      color:white;
+      @include font(Poppins, 400);
+      margin-left: 5%;
+  }
+
+ .features {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 5%;
+  }
+  
+}

@@ -36,7 +36,7 @@ where
     Ok(())
 }
 
-pub async fn set_ttl<K, V>(pool: &Pool, key: K, value: V, ttl: usize) -> Result<()>
+pub async fn set_ttl<K, V>(pool: &Pool, key: K, value: V, ttl: u64) -> Result<()>
 where
     K: AsRef<str>,
     V: AsRef<str>,

@@ -1,10 +1,10 @@
-use super::{rating_update::update_ratings, Response, Result};
+use super::{Response, Result, rating_update::update_ratings};
 use crate::{
     bot::run::{PoolContainer, RoleManagerContainer},
     models::{Challenge, User},
 };
 use serenity::{
-    framework::standard::{macros::command, CommandResult},
+    framework::standard::{CommandResult, macros::command},
     model::prelude::*,
     prelude::*,
 };

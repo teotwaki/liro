@@ -2,9 +2,9 @@ use super::run::{PoolContainer, RoleManagerContainer};
 use crate::{
     bot::{
         commands::{
+            Response as CommandResponse,
             account::{link, unlink},
             rating_update::update_ratings,
-            Response as CommandResponse,
         },
         rating_range::RatingRange,
     },

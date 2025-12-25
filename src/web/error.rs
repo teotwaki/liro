@@ -2,7 +2,7 @@ use crate::{lichess, models};
 use askama::Template;
 use std::convert::Infallible;
 use thiserror::Error;
-use warp::{http::StatusCode, reply, reply::html, Rejection, Reply};
+use warp::{Rejection, Reply, http::StatusCode, reply, reply::html};
 
 #[derive(Error, Debug)]
 pub enum Error {

@@ -1,7 +1,7 @@
 use super::{error, handlers::*};
 use crate::{db::Pool, lichess};
 use std::convert::Infallible;
-use warp::{http::Uri, Filter};
+use warp::{Filter, http::Uri};
 
 fn with_db(pool: Pool) -> impl Filter<Extract = (Pool,), Error = Infallible> + Clone {
     trace!("with_db() called");

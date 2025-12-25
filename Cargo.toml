@@ -31,7 +31,16 @@ features = ["server"]
 [dependencies.serenity]
 version = "0.10"
 default-features = false
-features = ["client", "gateway", "rustls_backend", "model", "utils", "framework", "standard_framework", "unstable_discord_api"]
+features = [
+  "client",
+  "gateway",
+  "rustls_backend",
+  "model",
+  "utils",
+  "framework",
+  "standard_framework",
+  "unstable_discord_api",
+]
 
 [dependencies.tokio]
 version = "1"

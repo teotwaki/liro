@@ -6,8 +6,8 @@ use crate::{bot::Handler, db::Pool, lichess};
 use serenity::{
     client::bridge::gateway::{GatewayIntents, ShardManager},
     framework::{
-        standard::macros::{group, hook},
         StandardFramework,
+        standard::macros::{group, hook},
     },
     http::Http,
     model::channel::Message,

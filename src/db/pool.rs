@@ -1,8 +1,8 @@
 use super::{Error, Result};
 use crate::config;
 use mobc_redis::{
-    redis::{self, AsyncCommands},
     RedisConnectionManager,
+    redis::{self, AsyncCommands},
 };
 
 pub type Pool = mobc::Pool<RedisConnectionManager>;

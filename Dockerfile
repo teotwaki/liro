@@ -4,8 +4,8 @@ FROM rust:1.58.1 AS builder
 RUN \
   apt-get update \
   && apt-get install -y \
-    musl-tools \
-    upx \
+  musl-tools \
+  upx \
   && rustup target add x86_64-unknown-linux-musl \
   && cargo new /src
 WORKDIR /src

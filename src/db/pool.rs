@@ -32,7 +32,7 @@ where
     trace!("set() called");
     let mut conn = get_connection(pool).await?;
 
-    conn.set(key.as_ref(), value.as_ref()).await?;
+    conn.set::<_, _, ()>(key.as_ref(), value.as_ref()).await?;
     Ok(())
 }
 
@@ -44,7 +44,8 @@ where
     trace!("set_ttl() called");
     let mut conn = get_connection(pool).await?;
 
-    conn.set_ex(key.as_ref(), value.as_ref(), ttl).await?;
+    conn.set_ex::<_, _, ()>(key.as_ref(), value.as_ref(), ttl)
+        .await?;
     Ok(())
 }
 

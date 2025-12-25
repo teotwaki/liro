@@ -5,7 +5,7 @@ use super::{
 use crate::{bot::Handler, db::Pool, lichess};
 use futures::join;
 use serenity::{
-    client::bridge::gateway::ShardManager,
+    all::{ShardManager, standard::Configuration},
     framework::{
         StandardFramework,
         standard::macros::{group, hook},
@@ -19,7 +19,7 @@ use std::{env, sync::Arc};
 pub struct ShardManagerContainer;
 
 impl TypeMapKey for ShardManagerContainer {
-    type Value = Arc<Mutex<ShardManager>>;
+    type Value = Arc<ShardManager>;
 }
 
 pub struct PoolContainer;
@@ -76,20 +76,23 @@ pub async fn run(pool: &Pool, lichess: &lichess::Client) {
 
     // We will fetch your bot's owners and id
     let owners = current_application
-        .map(|info| std::iter::once(info.owner.id).collect())
+        .map(|info| std::iter::once(info.owner.unwrap().id).collect())
         .unwrap_or_else(|why| panic!("Could not access application info: {:?}", why));
 
     // Create the framework
-    let framework = StandardFramework::new()
-        .configure(|c| {
-            c.owners(owners)
-                .with_whitespace(true)
-                .prefix("") // disable default ~ prefix
-                .prefixes(vec!["ohnomy", "oh no my"])
-                .case_insensitivity(true)
-                .on_mention(Some(bot_id))
-                .ignore_bots(true)
-        })
+    let mut framework = StandardFramework::new();
+    framework.configure(
+        Configuration::new()
+            .owners(owners)
+            .with_whitespace(true)
+            .prefix("") // disable default ~ prefix
+            .prefixes(vec!["ohnomy", "oh no my"])
+            .case_insensitivity(true)
+            .on_mention(Some(bot_id))
+            .ignore_bots(true),
+    );
+
+    framework = framework
         .unrecognised_command(unknown_command)
         .group(&GENERAL_GROUP);
 
@@ -120,7 +123,7 @@ pub async fn run(pool: &Pool, lichess: &lichess::Client) {
         tokio::signal::ctrl_c()
             .await
             .expect("Could not register ctrl+c handler");
-        shard_manager.lock().await.shutdown_all().await;
+        shard_manager.shutdown_all().await;
     });
 
     info!("Starting bot");

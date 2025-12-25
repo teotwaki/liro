@@ -4,18 +4,18 @@ use crate::{
     lichess::Format,
     models::User,
 };
-use serenity::{builder::CreateEmbed, model::prelude::*, prelude::*};
+use serenity::{all::CreateEmbedFooter, builder::CreateEmbed, model::prelude::*, prelude::*};
 use strum::IntoEnumIterator;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 async fn update_rating_roles(
     ctx: &Context,
-    guild_id: u64,
-    discord_id: u64,
-    rating_roles: Vec<u64>,
-    removeable_roles: Vec<u64>,
-) -> Result<(Vec<u64>, Vec<u64>)> {
+    guild_id: GuildId,
+    discord_id: UserId,
+    rating_roles: Vec<RoleId>,
+    removeable_roles: Vec<RoleId>,
+) -> Result<(Vec<RoleId>, Vec<RoleId>)> {
     trace!("update_rating_roles() called");
     let member = ctx
         .http
@@ -33,7 +33,7 @@ async fn update_rating_roles(
     let mut removed = vec![];
 
     for role_id in rating_roles {
-        if member.roles.contains(&RoleId(role_id)) {
+        if member.roles.contains(&role_id) {
             debug!("User already has role_id={}", role_id)
         } else {
             debug!("User is missing role_id={}", role_id);
@@ -53,7 +53,7 @@ async fn update_rating_roles(
     }
 
     for role_id in removeable_roles {
-        if member.roles.contains(&RoleId(role_id)) {
+        if member.roles.contains(&role_id) {
             debug!("User has extra role_id={} that should be removed", role_id);
             ctx.http
                 .remove_member_role(guild_id, discord_id, role_id, None)
@@ -73,7 +73,11 @@ async fn update_rating_roles(
     Ok((added, removed))
 }
 
-pub async fn update_ratings(ctx: &Context, guild_id: u64, discord_id: u64) -> Result<Response> {
+pub async fn update_ratings(
+    ctx: &Context,
+    guild_id: GuildId,
+    discord_id: UserId,
+) -> Result<Response> {
     trace!("update_ratings() called");
 
     info!(
@@ -103,9 +107,7 @@ pub async fn update_ratings(ctx: &Context, guild_id: u64, discord_id: u64) -> Re
                 update_rating_roles(ctx, guild_id, discord_id, rating_roles, removeable_roles)
                     .await?;
 
-            let mut embed = CreateEmbed {
-                ..Default::default()
-            };
+            let mut embed = CreateEmbed::default();
 
             for format in Format::iter() {
                 let old_rating = old_ratings.get(&format);
@@ -134,33 +136,31 @@ pub async fn update_ratings(ctx: &Context, guild_id: u64, discord_id: u64) -> Re
                     }
                     _ => "Unrated (or provisional)".to_string(),
                 };
-                embed.field(format.to_string(), description, true);
+                embed = embed.field(format.to_string(), description, true);
             }
 
             if !added.is_empty() {
                 let role_names = rm.get_rating_role_names(guild_id, &added);
-                embed.field("Roles added", role_names.join(", "), false);
+                embed = embed.field("Roles added", role_names.join(", "), false);
             }
 
             if !removed.is_empty() {
                 let role_names = rm.get_rating_role_names(guild_id, &removed);
-                embed.field("Roles removed", role_names.join(", "), false);
+                embed = embed.field("Roles removed", role_names.join(", "), false);
             }
 
-            embed
+            embed = embed
                 .description(format!(
                     "Ratings for [{}](https://lichess.org/@/{}) from \
                             [lichess](https://lichess.org).",
                     user.get_lichess_username(),
                     user.get_lichess_username()
                 ))
-                .footer(|f| {
-                    f.text(format!(
-                        "Liro version {}. Please note that this bot only cares about the \
-                                four rating formats shown above. Provisional ratings are ignored.",
-                        VERSION
-                    ))
-                });
+                .footer(CreateEmbedFooter::new(format!(
+                    "Liro version {}. Please note that this bot only cares about the four rating formats shown above. \
+                     Provisional ratings are ignored.",
+                    VERSION
+                )));
 
             Ok(Response::Embed(embed))
         }

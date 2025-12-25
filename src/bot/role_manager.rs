@@ -1,3 +1,5 @@
+use serenity::all::{GuildId, RoleId};
+
 use super::rating_range::RatingRange;
 use crate::lichess::Format;
 use std::{
@@ -7,7 +9,7 @@ use std::{
 
 #[derive(Debug, Clone)]
 pub struct RoleManager {
-    guild_roles: Arc<Mutex<HashMap<u64, HashMap<u64, RatingRange>>>>,
+    guild_roles: Arc<Mutex<HashMap<GuildId, HashMap<RoleId, RatingRange>>>>,
 }
 
 impl RoleManager {
@@ -21,7 +23,7 @@ impl RoleManager {
     /// Adds a new rating range role for the specific `guild_id`
     ///
     /// If the `guild_id` does not exist in the role manager, it is automatically created.
-    pub fn add_rating_range<R>(&mut self, guild_id: u64, role_id: u64, rating: R)
+    pub fn add_rating_range<R>(&mut self, guild_id: GuildId, role_id: RoleId, rating: R)
     where
         R: Into<RatingRange>,
     {
@@ -38,23 +40,23 @@ impl RoleManager {
         }
     }
 
-    pub fn remove_role(&mut self, guild_id: u64, role_id: u64) {
+    pub fn remove_role(&mut self, guild_id: GuildId, role_id: RoleId) {
         trace!("RoleManager::remove_role() called");
         if let Some(gr) = self.guild_roles.lock().unwrap().get_mut(&guild_id) {
             gr.remove(&role_id);
         }
     }
 
-    pub fn delete_guild(&mut self, guild_id: u64) {
+    pub fn delete_guild(&mut self, guild_id: GuildId) {
         trace!("RoleManager::delete_guild() called");
         self.guild_roles.lock().unwrap().remove(&guild_id);
     }
 
     pub fn find_rating_range_roles(
         &self,
-        guild_id: u64,
+        guild_id: GuildId,
         ratings: &HashMap<Format, i16>,
-    ) -> Vec<u64> {
+    ) -> Vec<RoleId> {
         trace!("RoleManager::find_rating_range_role() called");
         self.guild_roles
             .lock()
@@ -75,9 +77,9 @@ impl RoleManager {
             .unwrap_or_default()
     }
 
-    pub fn other_rating_range_roles<R>(&self, guild_id: u64, role_ids: R) -> Vec<u64>
+    pub fn other_rating_range_roles<R>(&self, guild_id: GuildId, role_ids: R) -> Vec<RoleId>
     where
-        R: AsRef<[u64]>,
+        R: AsRef<[RoleId]>,
     {
         trace!("RoleManager::other_rating_range_roles() called");
         self.guild_roles
@@ -98,9 +100,9 @@ impl RoleManager {
             .unwrap_or_default()
     }
 
-    pub fn get_rating_role_names<R>(&self, guild_id: u64, role_ids: R) -> Vec<String>
+    pub fn get_rating_role_names<R>(&self, guild_id: GuildId, role_ids: R) -> Vec<String>
     where
-        R: AsRef<[u64]>,
+        R: AsRef<[RoleId]>,
     {
         trace!("RoleManager::get_rating_role_names() called");
         self.guild_roles
@@ -131,8 +133,11 @@ mod tests {
         let rm = RoleManager::new();
 
         assert_eq!(
-            rm.find_rating_range_roles(0, &[(Format::Blitz, 15)].iter().cloned().collect())
-                .len(),
+            rm.find_rating_range_roles(
+                GuildId::new(0),
+                &[(Format::Blitz, 15)].iter().cloned().collect()
+            )
+            .len(),
             0
         );
     }
@@ -140,44 +145,60 @@ mod tests {
     #[test]
     fn find_rating_range_returns_all_ranges_that_match() {
         let mut rm = RoleManager::new();
+        let gid = GuildId::new(0);
+        let roles = [RoleId::new(123), RoleId::new(345), RoleId::new(456)];
 
-        rm.add_rating_range(0, 123, RatingRange::new(Format::Blitz, Some(10), Some(20)));
-        rm.add_rating_range(0, 345, RatingRange::new(Format::Blitz, Some(10), Some(30)));
         rm.add_rating_range(
-            0,
-            456,
+            gid,
+            RoleId::new(123),
+            RatingRange::new(Format::Blitz, Some(10), Some(20)),
+        );
+        rm.add_rating_range(
+            gid,
+            RoleId::new(345),
+            RatingRange::new(Format::Blitz, Some(10), Some(30)),
+        );
+        rm.add_rating_range(
+            gid,
+            RoleId::new(456),
             RatingRange::new(Format::Classical, Some(10), Some(30)),
         );
 
         let result =
-            rm.find_rating_range_roles(0, &[(Format::Blitz, 15)].iter().cloned().collect());
-        assert!(result.contains(&123));
-        assert!(result.contains(&345));
-        assert!(!result.contains(&456));
+            rm.find_rating_range_roles(gid, &[(Format::Blitz, 15)].iter().cloned().collect());
+        assert!(result.contains(&roles[0]));
+        assert!(result.contains(&roles[1]));
+        assert!(!result.contains(&roles[2]));
     }
 
     #[test]
     fn remove_role_can_be_called_on_an_empty_manager() {
         let mut rm = RoleManager::new();
 
-        rm.remove_role(0, 0);
+        rm.remove_role(GuildId::new(0), RoleId::new(0));
     }
 
     #[test]
     fn remove_role_correctly_removes_roles() {
         let mut rm = RoleManager::new();
+        let gid = GuildId::new(0);
+        let rid = RoleId::new(123);
 
-        rm.add_rating_range(0, 123, RatingRange::new(Format::Blitz, Some(10), Some(20)));
-
-        assert_eq!(
-            rm.find_rating_range_roles(0, &[(Format::Blitz, 15)].iter().cloned().collect()),
-            vec![123]
+        rm.add_rating_range(
+            gid,
+            rid,
+            RatingRange::new(Format::Blitz, Some(10), Some(20)),
         );
 
-        rm.remove_role(0, 123);
+        assert_eq!(
+            rm.find_rating_range_roles(gid, &[(Format::Blitz, 15)].iter().cloned().collect()),
+            vec![rid]
+        );
+
+        rm.remove_role(gid, rid);
 
         assert_eq!(
-            rm.find_rating_range_roles(0, &[(Format::Blitz, 15)].iter().cloned().collect())
+            rm.find_rating_range_roles(gid, &[(Format::Blitz, 15)].iter().cloned().collect())
                 .len(),
             0
         );
@@ -187,16 +208,33 @@ mod tests {
     fn other_rating_range_roles_can_be_called_on_empty_manager() {
         let rm = RoleManager::new();
 
-        assert_eq!(rm.other_rating_range_roles(0, &[0]).len(), 0);
+        assert_eq!(
+            rm.other_rating_range_roles(GuildId::new(0), &[RoleId::new(0)])
+                .len(),
+            0
+        );
     }
 
     #[test]
     fn other_rating_range_roles_returns_other_roles() {
         let mut rm = RoleManager::new();
+        let gid = GuildId::new(0);
+        let roles = [RoleId::new(123), RoleId::new(345), RoleId::new(456)];
 
-        rm.add_rating_range(0, 123, RatingRange::new(Format::Blitz, Some(10), Some(19)));
-        rm.add_rating_range(0, 345, RatingRange::new(Format::Bullet, Some(20), Some(30)));
+        rm.add_rating_range(
+            gid,
+            roles[0],
+            RatingRange::new(Format::Blitz, Some(10), Some(19)),
+        );
+        rm.add_rating_range(
+            gid,
+            roles[1],
+            RatingRange::new(Format::Bullet, Some(20), Some(30)),
+        );
 
-        assert_eq!(rm.other_rating_range_roles(0, &[123]), vec![345]);
+        assert_eq!(
+            rm.other_rating_range_roles(gid, &[roles[0]]),
+            vec![roles[1]]
+        );
     }
 }

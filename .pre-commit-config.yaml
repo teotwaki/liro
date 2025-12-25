@@ -1,0 +1,46 @@
+default_install_hook_types:
+  - pre-commit
+  - commit-msg
+
+repos:
+  - repo: "https://github.com/pre-commit/pre-commit-hooks"
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+        stages: [pre-commit]
+      - id: end-of-file-fixer
+        stages: [pre-commit]
+      - id: check-json
+        stages: [pre-commit]
+      - id: check-toml
+        stages: [pre-commit]
+      - id: check-yaml
+        stages: [pre-commit]
+      - id: check-added-large-files
+        stages: [pre-commit]
+      - id: check-merge-conflict
+        stages: [pre-commit]
+      - id: check-symlinks
+        stages: [pre-commit]
+      - id: detect-private-key
+        stages: [pre-commit]
+      - id: mixed-line-ending
+        stages: [pre-commit]
+
+  # Rust isn't supported by prek yet (a Rust tool not supporting Rust? blasphemy!)
+  #  - repo: https://github.com/rockmagma02/rust-pre-commit-hooks
+  #    rev: v0.2.0
+  #    hooks:
+  #      - id: rustfmt
+  #        stages: [pre-commit]
+  #      - id: cargo-fmt
+  #        stages: [pre-commit]
+  #      - id: clippy
+  #        stages: [pre-commit]
+
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.3.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        args: [--verbose]

@@ -23,13 +23,14 @@ mobc = "0.9"
 mobc-redis = "0.9"
 
 askama = "0.15"
+futures = "0.3.31"
 
 [dependencies.warp]
 version = "0.4"
 features = ["server"]
 
 [dependencies.serenity]
-version = "0.10"
+version = "0.11"
 default-features = false
 features = [
   "client",

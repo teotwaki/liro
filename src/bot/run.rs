@@ -3,8 +3,9 @@ use super::{
     role_manager::RoleManager,
 };
 use crate::{bot::Handler, db::Pool, lichess};
+use futures::join;
 use serenity::{
-    client::bridge::gateway::{GatewayIntents, ShardManager},
+    client::bridge::gateway::ShardManager,
     framework::{
         StandardFramework,
         standard::macros::{group, hook},
@@ -13,7 +14,7 @@ use serenity::{
     model::channel::Message,
     prelude::*,
 };
-use std::{collections::HashSet, env, sync::Arc};
+use std::{env, sync::Arc};
 
 pub struct ShardManagerContainer;
 
@@ -66,18 +67,17 @@ pub async fn run(pool: &Pool, lichess: &lichess::Client) {
         .parse()
         .expect("Expected the APPLICATION_ID environment variable to be an integer");
 
-    let http = Http::new_with_token(&token);
+    let http = Http::new(&token);
+
+    let (current_user, current_application) =
+        join!(http.get_current_user(), http.get_current_application_info());
+
+    let bot_id = current_user.expect("Could not access user info").id;
 
     // We will fetch your bot's owners and id
-    let (owners, bot_id) = match http.get_current_application_info().await {
-        Ok(info) => {
-            let mut owners = HashSet::new();
-            owners.insert(info.owner.id);
-
-            (owners, info.id)
-        }
-        Err(why) => panic!("Could not access application info: {:?}", why),
-    };
+    let owners = current_application
+        .map(|info| std::iter::once(info.owner.id).collect())
+        .unwrap_or_else(|why| panic!("Could not access application info: {:?}", why));
 
     // Create the framework
     let framework = StandardFramework::new()
@@ -96,15 +96,13 @@ pub async fn run(pool: &Pool, lichess: &lichess::Client) {
     // Create a new instance of the Client, logging in as a bot. This will
     // automatically prepend your bot token with "Bot ", which is a requirement
     // by Discord for bot users.
-    let mut client = Client::builder(&token)
+    let intents =
+        GatewayIntents::DIRECT_MESSAGES | GatewayIntents::GUILD_MESSAGES | GatewayIntents::GUILDS;
+
+    let mut client = Client::builder(&token, intents)
         .framework(framework)
         .event_handler(Handler {})
         .application_id(application_id)
-        .intents(
-            GatewayIntents::DIRECT_MESSAGES
-                | GatewayIntents::GUILD_MESSAGES
-                | GatewayIntents::GUILDS,
-        )
         .await
         .expect("Error creating client");
 

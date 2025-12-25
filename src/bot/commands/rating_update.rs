@@ -38,7 +38,7 @@ async fn update_rating_roles(
         } else {
             debug!("User is missing role_id={}", role_id);
             ctx.http
-                .add_member_role(guild_id, discord_id, role_id)
+                .add_member_role(guild_id, discord_id, role_id, None)
                 .await
                 .map_err(|e| {
                     error!(
@@ -56,7 +56,7 @@ async fn update_rating_roles(
         if member.roles.contains(&RoleId(role_id)) {
             debug!("User has extra role_id={} that should be removed", role_id);
             ctx.http
-                .remove_member_role(guild_id, discord_id, role_id)
+                .remove_member_role(guild_id, discord_id, role_id, None)
                 .await
                 .map_err(|e| {
                     error!(

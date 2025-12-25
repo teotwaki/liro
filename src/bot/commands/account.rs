@@ -43,7 +43,7 @@ pub async fn unlink(ctx: &Context, guild_id: u64, discord_id: u64) -> Result<Res
             for role_id in role_ids {
                 if member.roles.contains(&RoleId(role_id)) {
                     ctx.http
-                        .remove_member_role(guild_id, discord_id, role_id)
+                        .remove_member_role(guild_id, discord_id, role_id, None)
                         .await
                         .map_err(|e| {
                             error!(

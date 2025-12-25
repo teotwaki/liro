@@ -12,10 +12,7 @@ use crate::{
 };
 use serenity::{
     async_trait,
-    model::{
-        interactions::application_command::ApplicationCommand,
-        {gateway::Ready, guild::Guild, prelude::*},
-    },
+    model::{application::command::Command, gateway::Ready, guild::Guild, prelude::*},
     prelude::*,
 };
 
@@ -52,7 +49,7 @@ impl EventHandler for Handler {
         }
     }
 
-    async fn guild_delete(&self, ctx: Context, guild: GuildUnavailable) {
+    async fn guild_delete(&self, ctx: Context, guild: UnavailableGuild) {
         trace!("Handler::guild_delete() called");
         let guild_id = *guild.id.as_u64();
         let data = ctx.data.read().await;
@@ -80,23 +77,23 @@ impl EventHandler for Handler {
         role_manager.delete_guild(guild_id);
     }
 
-    async fn guild_role_create(&self, ctx: Context, guild_id: GuildId, role: Role) {
+    async fn guild_role_create(&self, ctx: Context, role: Role) {
         trace!("Handler::guild_role_create() called");
         info!(
             "Adding role {} (role_id={}) to guild_id={}",
-            role.name, role.id, guild_id
+            role.name, role.id, role.guild_id
         );
         let data = ctx.data.read().await;
         let mut role_manager = data.get::<RoleManagerContainer>().unwrap().clone();
 
         if let Ok(rr) = role.name.parse::<RatingRange>() {
-            role_manager.add_rating_range(*guild_id.as_u64(), *role.id.as_u64(), rr);
+            role_manager.add_rating_range(*role.guild_id.as_u64(), *role.id.as_u64(), rr);
         }
     }
 
-    async fn guild_role_update(&self, ctx: Context, guild_id: GuildId, role: Role) {
+    async fn guild_role_update(&self, ctx: Context, role: Role) {
         trace!("Handler::guild_role_update() called");
-        let guild_id = *guild_id.as_u64();
+        let guild_id = *role.guild_id.as_u64();
         let role_id = *role.id.as_u64();
 
         let data = ctx.data.read().await;
@@ -132,7 +129,7 @@ impl EventHandler for Handler {
         trace!("Handler::ready() called");
         info!("{} is now online", ready.user.tag());
 
-        let commands = ApplicationCommand::set_global_application_commands(&ctx.http, |commands| {
+        let commands = Command::set_global_application_commands(&ctx.http, |commands| {
             commands
                 .create_application_command(|command| {
                     command.name("rating").description(

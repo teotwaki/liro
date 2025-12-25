@@ -3,7 +3,7 @@ use crate::{db, lichess::auth};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
-const TTL: usize = 86400;
+const TTL: u64 = 86400;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Challenge {

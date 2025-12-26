@@ -4,17 +4,18 @@ use crate::{
     lichess::{self, Format},
 };
 use serde::{Deserialize, Serialize};
+use serenity::all::{GuildId, UserId};
 use std::{collections::HashMap, fmt};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct User {
-    guild_id: u64,
-    discord_id: u64,
+    guild_id: GuildId,
+    discord_id: UserId,
     lichess_username: String,
     ratings: HashMap<Format, i16>,
 }
 
-fn key(guild_id: u64, discord_id: u64) -> String {
+fn key(guild_id: GuildId, discord_id: UserId) -> String {
     trace!("key() called");
     format!("users:{}:{}", guild_id, discord_id)
 }
@@ -27,8 +28,8 @@ impl User {
 
     pub async fn new<U>(
         pool: &db::Pool,
-        guild_id: u64,
-        discord_id: u64,
+        guild_id: GuildId,
+        discord_id: UserId,
         lichess_username: U,
     ) -> Result<User>
     where
@@ -56,7 +57,11 @@ impl User {
         Ok(())
     }
 
-    pub async fn find(pool: &db::Pool, guild_id: u64, discord_id: u64) -> Result<Option<User>> {
+    pub async fn find(
+        pool: &db::Pool,
+        guild_id: GuildId,
+        discord_id: UserId,
+    ) -> Result<Option<User>> {
         trace!("User::find() called");
         debug!("Looking up user with discord_id={}", discord_id);
 
@@ -75,7 +80,7 @@ impl User {
 
     pub async fn find_by_username<U>(
         pool: &db::Pool,
-        guild_id: u64,
+        guild_id: GuildId,
         username: U,
     ) -> Result<Option<User>>
     where
@@ -115,7 +120,7 @@ impl User {
         &self.ratings
     }
 
-    pub async fn fetch_all(pool: &db::Pool, guild_id: u64) -> Result<Vec<User>> {
+    pub async fn fetch_all(pool: &db::Pool, guild_id: GuildId) -> Result<Vec<User>> {
         trace!("User::fetch_all() called");
 
         let prefix = format!("users:{}:*", guild_id);

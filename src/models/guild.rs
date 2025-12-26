@@ -1,15 +1,16 @@
 use super::Result;
 use crate::db;
 use serde::{Deserialize, Serialize};
+use serenity::all::GuildId;
 use std::fmt;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Guild {
-    id: u64,
+    id: GuildId,
     name: String,
 }
 
-fn key(guild_id: u64) -> String {
+fn key(guild_id: GuildId) -> String {
     trace!("key() called");
     format!("guilds:{}", guild_id)
 }
@@ -20,7 +21,7 @@ impl Guild {
         key(self.id)
     }
 
-    pub async fn new<N>(pool: &db::Pool, id: u64, name: N) -> Result<Self>
+    pub async fn new<N>(pool: &db::Pool, id: GuildId, name: N) -> Result<Self>
     where
         N: Into<String>,
     {
@@ -58,7 +59,7 @@ impl Guild {
         Ok(())
     }
 
-    pub async fn find(pool: &db::Pool, id: u64) -> Result<Option<Guild>> {
+    pub async fn find(pool: &db::Pool, id: GuildId) -> Result<Option<Guild>> {
         trace!("Guild::find() called");
         match db::get(pool, key(id)).await? {
             Some(serialized) => {

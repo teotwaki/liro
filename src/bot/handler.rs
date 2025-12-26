@@ -11,8 +11,9 @@ use crate::{
     models,
 };
 use serenity::{
+    all::{CreateCommand, CreateInteractionResponse},
     async_trait,
-    model::{application::command::Command, gateway::Ready, guild::Guild, prelude::*},
+    model::{application::Command, gateway::Ready, guild::Guild, prelude::*},
     prelude::*,
 };
 
@@ -20,14 +21,13 @@ pub struct Handler;
 
 #[async_trait]
 impl EventHandler for Handler {
-    async fn guild_create(&self, ctx: Context, guild: Guild) {
+    async fn guild_create(&self, ctx: Context, guild: Guild, _is_new: Option<bool>) {
         trace!("Handler::guild_create() called");
         let data = ctx.data.read().await;
 
-        let guild_id = *guild.id.as_u64();
         {
             let pool = data.get::<PoolContainer>().unwrap().clone();
-            match models::Guild::new(&pool, guild_id, &guild.name).await {
+            match models::Guild::new(&pool, guild.id, &guild.name).await {
                 Ok(guild) => info!("Joining new {}", guild),
                 Err(e) => {
                     error!("Unable to save guild: {}", e);
@@ -38,20 +38,19 @@ impl EventHandler for Handler {
 
         let mut role_manager = data.get::<RoleManagerContainer>().unwrap().clone();
         for (role_id, role) in &guild.roles {
-            let role_id = *role_id.as_u64();
             if let Ok(rr) = role.name.parse::<RatingRange>() {
                 info!(
                     "Adding new role {} (role_id={}) to guild {} (guild_id={})",
-                    role.name, role_id, guild.name, guild_id
+                    role.name, role_id, guild.name, guild.id
                 );
-                role_manager.add_rating_range(guild_id, role_id, rr);
+                role_manager.add_rating_range(guild.id, *role_id, rr);
             }
         }
     }
 
-    async fn guild_delete(&self, ctx: Context, guild: UnavailableGuild) {
+    async fn guild_delete(&self, ctx: Context, guild: UnavailableGuild, _full: Option<Guild>) {
         trace!("Handler::guild_delete() called");
-        let guild_id = *guild.id.as_u64();
+        let guild_id = guild.id;
         let data = ctx.data.read().await;
         let pool = data.get::<PoolContainer>().unwrap().clone();
 
@@ -87,36 +86,44 @@ impl EventHandler for Handler {
         let mut role_manager = data.get::<RoleManagerContainer>().unwrap().clone();
 
         if let Ok(rr) = role.name.parse::<RatingRange>() {
-            role_manager.add_rating_range(*role.guild_id.as_u64(), *role.id.as_u64(), rr);
+            role_manager.add_rating_range(role.guild_id, role.id, rr);
         }
     }
 
-    async fn guild_role_update(&self, ctx: Context, role: Role) {
+    async fn guild_role_update(
+        &self,
+        ctx: Context,
+        _old_data_if_available: Option<Role>,
+        role: Role,
+    ) {
         trace!("Handler::guild_role_update() called");
-        let guild_id = *role.guild_id.as_u64();
-        let role_id = *role.id.as_u64();
-
         let data = ctx.data.read().await;
         let mut role_manager = data.get::<RoleManagerContainer>().unwrap().clone();
 
-        role_manager.remove_role(guild_id, role_id);
+        role_manager.remove_role(role.guild_id, role.id);
 
         if let Ok(rr) = role.name.parse::<RatingRange>() {
             info!(
                 "Updating role {} (role_id={}) in guild_id={}",
-                role.name, role_id, guild_id
+                role.name, role.id, role.guild_id
             );
-            role_manager.add_rating_range(guild_id, role_id, rr);
+            role_manager.add_rating_range(role.guild_id, role.id, rr);
         }
     }
 
-    async fn guild_role_delete(&self, ctx: Context, guild_id: GuildId, role_id: RoleId) {
+    async fn guild_role_delete(
+        &self,
+        ctx: Context,
+        guild_id: GuildId,
+        role_id: RoleId,
+        _role_data_if_available: Option<Role>,
+    ) {
         trace!("Handler::guild_role_delete() called");
         info!("Removing role_id={} from guild_id={}", role_id, guild_id);
         let data = ctx.data.read().await;
         let mut role_manager = data.get::<RoleManagerContainer>().unwrap().clone();
 
-        role_manager.remove_role(*guild_id.as_u64(), *role_id.as_u64());
+        role_manager.remove_role(guild_id, role_id);
     }
 
     // Set a handler to be called on the `ready` event. This is called when a
@@ -129,24 +136,20 @@ impl EventHandler for Handler {
         trace!("Handler::ready() called");
         info!("{} is now online", ready.user.tag());
 
-        let commands = Command::set_global_application_commands(&ctx.http, |commands| {
-            commands
-                .create_application_command(|command| {
-                    command.name("rating").description(
-                        "Retrieves your updated lichess ratings and gives you Discord roles",
-                    )
-                })
-                .create_application_command(|command| {
-                    command.name("link").description(
-                        "Connects your lichess.org account with Liro. Needed to update ratings.",
-                    )
-                })
-                .create_application_command(|command| {
-                    command.name("unlink").description(
-                        "Deletes all your information from the bot and removes your Discord roles.",
-                    )
-                })
-        })
+        let commands = Command::set_global_commands(
+            &ctx.http,
+            vec![
+                CreateCommand::new("rating").description(
+                    "Retrieves your updated lichess ratings and gives you Discord roles",
+                ),
+                CreateCommand::new("link").description(
+                    "Connects your lichess.org account with Liro. Needed to update ratings.",
+                ),
+                CreateCommand::new("unlink").description(
+                    "Deletes all your information from the bot and removes your Discord roles.",
+                ),
+            ],
+        )
         .await;
 
         match commands {
@@ -160,16 +163,16 @@ impl EventHandler for Handler {
 
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         trace!("Handler::interaction_create()");
-        if let Interaction::ApplicationCommand(command) = interaction {
+        if let Interaction::Command(command) = interaction {
             let guild_id = match command.guild_id {
-                Some(guild_id) => *guild_id.as_u64(),
+                Some(guild_id) => guild_id,
                 None => {
                     error!("Failed to handle interaction: missing guild_id in command");
                     return;
                 }
             };
 
-            let discord_id = *command.user.id.as_u64();
+            let discord_id = command.user.id;
             info!(
                 "Handling application command '/{}' for discord_id={} in guild_id={}",
                 command.data.name, discord_id, guild_id
@@ -181,25 +184,36 @@ impl EventHandler for Handler {
                 _ => unreachable!(),
             };
 
-            if let Err(why) = command
-                .create_interaction_response(&ctx.http, |response| {
-                    response.interaction_response_data(|message| match command_response {
-                        Ok(CommandResponse::Embed(e)) => message.add_embed(e),
-                        Ok(CommandResponse::PrivateEmbed(e)) => message
-                            .add_embed(e)
-                            .flags(InteractionApplicationCommandCallbackDataFlags::EPHEMERAL),
-                        Ok(CommandResponse::Sentence(s)) => message.content(s),
-                        Ok(CommandResponse::PrivateSentence(s)) => message
-                            .content(s)
-                            .flags(InteractionApplicationCommandCallbackDataFlags::EPHEMERAL),
-                        Err(why) => {
-                            error!("Error handling command: {}", why);
-                            message.content("Internal bot error. @teotwaki, I'm scared.")
+            let result = command
+                .create_response(
+                    &ctx.http,
+                    CreateInteractionResponse::Message(match command_response {
+                        Ok(CommandResponse::Embed(e)) => {
+                            serenity::builder::CreateInteractionResponseMessage::new().add_embed(e)
                         }
-                    })
-                })
-                .await
-            {
+                        Ok(CommandResponse::PrivateEmbed(e)) => {
+                            serenity::builder::CreateInteractionResponseMessage::new()
+                                .add_embed(e)
+                                .flags(InteractionResponseFlags::EPHEMERAL)
+                        }
+                        Ok(CommandResponse::Sentence(s)) => {
+                            serenity::builder::CreateInteractionResponseMessage::new().content(s)
+                        }
+                        Ok(CommandResponse::PrivateSentence(s)) => {
+                            serenity::builder::CreateInteractionResponseMessage::new()
+                                .content(s)
+                                .flags(InteractionResponseFlags::EPHEMERAL)
+                        }
+                        Err(ref why) => {
+                            error!("Error handling command: {}", why);
+                            serenity::builder::CreateInteractionResponseMessage::new()
+                                .content("Internal bot error. @teotwaki, I'm scared.")
+                        }
+                    }),
+                )
+                .await;
+
+            if let Err(why) = result {
                 error!("Cannot respond to slash command: {}", why);
             }
         }

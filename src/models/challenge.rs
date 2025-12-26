@@ -1,6 +1,7 @@
 use super::Result;
 use crate::{db, lichess::auth};
 use serde::{Deserialize, Serialize};
+use serenity::all::{GuildId, UserId};
 use std::fmt;
 
 const TTL: u64 = 86400;
@@ -8,8 +9,8 @@ const TTL: u64 = 86400;
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Challenge {
     id: u64,
-    guild_id: u64,
-    discord_id: u64,
+    guild_id: GuildId,
+    discord_id: UserId,
     code_verifier: Vec<u8>,
 }
 
@@ -24,7 +25,7 @@ impl Challenge {
         key(self.id)
     }
 
-    pub async fn new(pool: &db::Pool, guild_id: u64, discord_id: u64) -> Result<Challenge> {
+    pub async fn new(pool: &db::Pool, guild_id: GuildId, discord_id: UserId) -> Result<Challenge> {
         trace!("Challenge::new() called");
         let challenge = Self {
             id: rand::random(),
@@ -64,12 +65,12 @@ impl Challenge {
         format!("{}", self.id)
     }
 
-    pub fn guild_id(&self) -> u64 {
+    pub fn guild_id(&self) -> GuildId {
         trace!("Challenge::guild_id() called");
         self.guild_id
     }
 
-    pub fn discord_id(&self) -> u64 {
+    pub fn discord_id(&self) -> UserId {
         trace!("Challenge::discord_id() called");
         self.discord_id
     }

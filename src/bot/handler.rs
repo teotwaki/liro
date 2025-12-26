@@ -50,7 +50,7 @@ impl EventHandler for Handler {
 
     async fn guild_delete(&self, ctx: Context, guild: UnavailableGuild, _full: Option<Guild>) {
         trace!("Handler::guild_delete() called");
-        let guild_id = guild.id.into();
+        let guild_id = guild.id;
         let data = ctx.data.read().await;
         let pool = data.get::<PoolContainer>().unwrap().clone();
 

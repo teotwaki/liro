@@ -9,8 +9,8 @@ const TTL: u64 = 86400;
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Challenge {
     id: u64,
-    guild_id: u64,
-    discord_id: u64,
+    guild_id: GuildId,
+    discord_id: UserId,
     code_verifier: Vec<u8>,
 }
 
@@ -29,8 +29,8 @@ impl Challenge {
         trace!("Challenge::new() called");
         let challenge = Self {
             id: rand::random(),
-            guild_id: guild_id.into(),
-            discord_id: discord_id.into(),
+            guild_id,
+            discord_id,
             code_verifier: pkce::code_verifier(128),
         };
 
@@ -67,12 +67,12 @@ impl Challenge {
 
     pub fn guild_id(&self) -> GuildId {
         trace!("Challenge::guild_id() called");
-        GuildId::new(self.guild_id)
+        self.guild_id
     }
 
     pub fn discord_id(&self) -> UserId {
         trace!("Challenge::discord_id() called");
-        UserId::new(self.discord_id)
+        self.discord_id
     }
 
     pub fn lichess_url(&self) -> String {

@@ -1,44 +1,21 @@
 name: CI
 
-on:
-  push:
-    branches: '*'
-  pull_request:
-    branches: '*'
+on: [push, pull_request]
 
 jobs:
-  lint-and-tests:
+  test:
+    name: cargo test
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout sources
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo test --all-features
 
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          components: rustfmt, clippy
-
-      - name: Run fmt
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
-
-      - name: Run clippy
-        uses: actions-rs/clippy-check@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          args: --all-features
-
-      - name: Build unit tests
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --no-run
-
-      - name: Run unit tests
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
+  lint:
+    name: cargo test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy --all-features

@@ -2,7 +2,7 @@ use crate::{bot, db, lichess, web};
 
 pub async fn run() {
     trace!("run() called");
-    dotenv::dotenv().ok();
+    dotenvy::dotenv().ok();
     pretty_env_logger::init();
 
     let pool = db::connect().await.expect("Couldn't connect to pool");

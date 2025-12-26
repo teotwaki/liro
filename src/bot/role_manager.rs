@@ -134,7 +134,7 @@ mod tests {
 
         assert_eq!(
             rm.find_rating_range_roles(
-                GuildId::new(0),
+                GuildId::new(1),
                 &[(Format::Blitz, 15)].iter().cloned().collect()
             )
             .len(),
@@ -145,7 +145,7 @@ mod tests {
     #[test]
     fn find_rating_range_returns_all_ranges_that_match() {
         let mut rm = RoleManager::new();
-        let gid = GuildId::new(0);
+        let gid = GuildId::new(1);
         let roles = [RoleId::new(123), RoleId::new(345), RoleId::new(456)];
 
         rm.add_rating_range(
@@ -175,13 +175,13 @@ mod tests {
     fn remove_role_can_be_called_on_an_empty_manager() {
         let mut rm = RoleManager::new();
 
-        rm.remove_role(GuildId::new(0), RoleId::new(0));
+        rm.remove_role(GuildId::new(1), RoleId::new(1));
     }
 
     #[test]
     fn remove_role_correctly_removes_roles() {
         let mut rm = RoleManager::new();
-        let gid = GuildId::new(0);
+        let gid = GuildId::new(1);
         let rid = RoleId::new(123);
 
         rm.add_rating_range(
@@ -209,7 +209,7 @@ mod tests {
         let rm = RoleManager::new();
 
         assert_eq!(
-            rm.other_rating_range_roles(GuildId::new(0), &[RoleId::new(0)])
+            rm.other_rating_range_roles(GuildId::new(1), [RoleId::new(1)])
                 .len(),
             0
         );
@@ -218,7 +218,7 @@ mod tests {
     #[test]
     fn other_rating_range_roles_returns_other_roles() {
         let mut rm = RoleManager::new();
-        let gid = GuildId::new(0);
+        let gid = GuildId::new(1);
         let roles = [RoleId::new(123), RoleId::new(345), RoleId::new(456)];
 
         rm.add_rating_range(
@@ -232,9 +232,6 @@ mod tests {
             RatingRange::new(Format::Bullet, Some(20), Some(30)),
         );
 
-        assert_eq!(
-            rm.other_rating_range_roles(gid, &[roles[0]]),
-            vec![roles[1]]
-        );
+        assert_eq!(rm.other_rating_range_roles(gid, [roles[0]]), vec![roles[1]]);
     }
 }

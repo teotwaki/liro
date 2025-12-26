@@ -39,7 +39,7 @@ pub async fn unlink(ctx: &Context, guild_id: GuildId, discord_id: UserId) -> Res
                     );
                     e
                 })?;
-            let role_ids = rm.other_rating_range_roles(guild_id, &[]);
+            let role_ids = rm.other_rating_range_roles(guild_id, []);
 
             for role_id in role_ids {
                 if member.roles.contains(&role_id) {

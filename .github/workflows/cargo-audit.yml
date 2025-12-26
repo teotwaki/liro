@@ -2,22 +2,34 @@ name: Security audit
 
 on:
   push:
-    branches: '*'
     paths:
-      - '**/Cargo.toml'
-      - '**/Cargo.lock'
+      - "**/Cargo.toml"
+      - "**/Cargo.lock"
 
   schedule:
-    - cron: '0 0 * * *'
+    - cron: "0 0 * * *"
 
 jobs:
   security_audit:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout sources
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
 
-      - name: Run cargo-audit
-        uses: actions-rs/audit-check@v1
+      - uses: actions/cache@v5
+        id: cargo-cache
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-audit
+
+      - name: install dependencies
+        if: steps.cargo-cache.outputs.cache-hit != 'true'
+        run: cargo install cargo-audit
+
+      - name: cargo audit
+        run: cargo audit

@@ -4,8 +4,6 @@ version = "0.10.0"
 authors = ["Sebastian Lauwers <sl@mailicio.us"]
 edition = "2024"
 
-# force security audit to run
-
 [dependencies]
 dotenvy = "0.15"
 log = "0.4"

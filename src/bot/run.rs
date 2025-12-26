@@ -99,8 +99,10 @@ pub async fn run(pool: &Pool, lichess: &lichess::Client) {
     // Create a new instance of the Client, logging in as a bot. This will
     // automatically prepend your bot token with "Bot ", which is a requirement
     // by Discord for bot users.
-    let intents =
-        GatewayIntents::DIRECT_MESSAGES | GatewayIntents::GUILD_MESSAGES | GatewayIntents::GUILDS;
+    let intents = GatewayIntents::MESSAGE_CONTENT
+        | GatewayIntents::GUILD_MESSAGES
+        | GatewayIntents::DIRECT_MESSAGES
+        | GatewayIntents::GUILDS;
 
     let mut client = Client::builder(&token, intents)
         .framework(framework)

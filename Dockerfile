@@ -6,7 +6,8 @@ RUN \
   && apt-get install -y \
   musl-tools \
   upx \
-  && rustup target add aarch64-unknown-linux-musl
+  && rustup target add aarch64-unknown-linux-musl \
+  && cargo new /src
 WORKDIR /src
 
 # Cache dependencies. This will be invalidated with every version bump.

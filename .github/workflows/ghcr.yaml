@@ -7,7 +7,7 @@ on:
 jobs:
   package:
     name: Docker image
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     env:
       IMAGE: ghcr.io/${{ github.repository }}
     steps:

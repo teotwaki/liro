@@ -6,26 +6,25 @@ RUN \
   && apt-get install -y \
   musl-tools \
   upx \
-  && rustup target add x86_64-unknown-linux-musl \
-  && cargo new /src
+  && rustup target add aarch64-unknown-linux-musl
 WORKDIR /src
 
 # Cache dependencies. This will be invalidated with every version bump.
 COPY Cargo.toml Cargo.lock ./
-RUN cargo build --release --target x86_64-unknown-linux-musl
+RUN cargo build --release --target aarch64-unknown-linux-musl
 
 # Build actual library & application
 COPY src ./src
 COPY templates ./templates
 RUN \
-  cargo build --release --target x86_64-unknown-linux-musl \
-  && upx --lzma target/x86_64-unknown-linux-musl/release/liro
+  cargo build --release --target aarch64-unknown-linux-musl \
+  && upx --lzma target/aarch64-unknown-linux-musl/release/liro
 
 FROM scratch
 ENV RUST_LOG=info
 ENV RUST_BACKTRACE=full
 
 COPY assets /assets
-COPY --from=builder /src/target/x86_64-unknown-linux-musl/release/liro /app
+COPY --from=builder /src/target/aarch64-unknown-linux-musl/release/liro /app
 
 CMD ["./app"]

@@ -1,5 +1,5 @@
 # Build stage
-FROM rust:1.92.0 AS builder
+FROM rust:1.100.0 AS builder
 
 RUN \
   apt-get update \

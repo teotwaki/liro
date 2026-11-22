@@ -8,6 +8,8 @@ jobs:
   package:
     name: Docker image
     runs-on: ubuntu-latest
+    env:
+      IMAGE: ghcr.io/${{ github.repository }}
     steps:
       - name: Checkout sources
         uses: actions/checkout@v6
@@ -21,10 +23,12 @@ jobs:
 
       - name: Get the version
         id: get_version
-        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+        run: echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> "$GITHUB_OUTPUT"
 
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: ghcr.io/${{ github.repository }}:${{ steps.get_version.outputs.VERSION }}, ghcr.io/${{ github.repository }}:latest
+          tags: |
+            ${{ env.IMAGE }}:${{ steps.get_version.outputs.VERSION }}
+            ${{ env.IMAGE }}:latest

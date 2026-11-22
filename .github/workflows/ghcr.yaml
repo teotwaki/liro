@@ -15,14 +15,14 @@ jobs:
       IMAGE: ghcr.io/${{ github.repository }}
     steps:
       - name: Checkout sources
-        # v6.1.0
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        # v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
 
       - name: Login to GitHub Container Registry
-        # v3.7.0
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
+        # v4.8.0
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -33,8 +33,8 @@ jobs:
         run: echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> "$GITHUB_OUTPUT"
 
       - name: Build and push
-        # v6.19.2
-        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
+        # v7.4.0
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc
         with:
           push: true
           tags: |

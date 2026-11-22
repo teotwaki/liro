@@ -11,18 +11,18 @@ pretty_env_logger = "0.5"
 serde_json = "1.0"
 thiserror = "2.0"
 
-rand = "0.9"
+rand = "0.10"
 pkce = "0.2"
 
 regex = "1.5"
 lazy_static = "1.4"
-strum = "0.27"
-strum_macros = "0.27"
+strum = "0.28"
+strum_macros = "0.28"
 
 mobc = "0.9"
 mobc-redis = "0.9"
 
-askama = "0.15"
+askama = "0.16"
 futures = "0.3.31"
 
 [dependencies.warp]
@@ -57,4 +57,4 @@ default-features = false
 features = ["rustls-tls", "gzip", "brotli", "deflate", "json"]
 
 [dev-dependencies]
-serial_test = "3.2"
+serial_test = "4.0"

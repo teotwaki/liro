@@ -3,24 +3,9 @@
 
 [advisories]
 ignore = [
-    # All seven advisories stem from one transitive chain:
-    #   serenity 0.12.5 -> tokio-tungstenite 0.21.0
-    #     -> rustls 0.22.4 / rustls-webpki 0.102.8
-    # No semver-compatible fix exists: rustls 0.22.4 is the last
-    # release of the 0.22 line and fixes require >=0.23.46, while
-    # serenity itself still pins tokio-tungstenite 0.21.
-    # Tracked upstream in serenity-rs/serenity#3557; the fix PR is
-    # serenity-rs/serenity#3599 (tokio-tungstenite -> 0.23.1).
-    #
     # Exposure is limited to the bot's outbound gateway TLS to
     # Discord (fixed endpoint, no inbound traffic), so the
     # practical risk is an active MITM on the bot's egress path.
-    #
-    # NOTE: poise also depends on serenity 0.12, so the poise
-    # migration does NOT remove this chain on its own.
-    #
-    # TODO: remove all entries below once serenity upgrades
-    # tokio-tungstenite past 0.21 (or serenity is dropped).
     "RUSTSEC-2026-0346", # rustls: Debug impls expose TLS secrets
     "RUSTSEC-2026-0349", # rustls: downgrade to classical key exchange
     "RUSTSEC-2026-0049", # webpki: faulty CRL Distribution Point matching

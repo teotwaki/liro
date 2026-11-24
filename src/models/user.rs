@@ -50,7 +50,7 @@ impl User {
 
     async fn save(&self, pool: &db::Pool) -> Result<()> {
         trace!("User::save() called");
-        debug!("Saving {}", &self);
+        debug!("Saving {}", self);
         let serialized = serde_json::to_string(self)?;
         db::set(pool, self.key(), serialized).await?;
 

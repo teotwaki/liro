@@ -25,12 +25,17 @@ mobc-redis = "0.9"
 askama = "0.16"
 futures = "0.3.31"
 
+[dependencies.poise]
+version = "0.7.1"
+# Keep Serenity cache and chrono disabled; TLS is selected below.
+default-features = false
+
 [dependencies.warp]
 version = "0.4"
 features = ["server"]
 
 [dependencies.serenity]
-version = "0.12"
+version = "0.12.5"
 default-features = false
 features = [
   "client",
@@ -39,8 +44,7 @@ features = [
   "model",
   "utils",
   "framework",
-  "standard_framework",
-  "unstable_discord_api",
+  "standard_framework", # Required until the legacy commands are ported.
 ]
 
 [dependencies.tokio]

@@ -1,4 +1,4 @@
-use serenity::all::{GuildId, RoleId};
+use poise::serenity_prelude::{GuildId, RoleId};
 
 use super::rating_range::RatingRange;
 use crate::lichess::Format;

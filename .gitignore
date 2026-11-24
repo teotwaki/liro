@@ -1,2 +1,3 @@
 /target
 .env
+/.mise/config.test.local.toml

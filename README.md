@@ -39,6 +39,23 @@ in your server. Here is an example of how roles could be setup:
 
 ![Screenshot of sample Discord rating role setup](.images/role-sample.png)
 
+## Run the test bot locally
+
+Put the **test** application's configuration in `.mise/config.test.local.toml`
+(ignored by Git). Under `[env]`, set `DISCORD_TOKEN`, `APPLICATION_ID`,
+`LICHESS_API_TOKEN`, `CLIENT_ID`, and `HOSTNAME` as quoted strings. `HOSTNAME` can be
+`http://localhost:8000` for a local Lichess OAuth callback. Redis defaults to
+localhost; set `DB_HOST` if your test Redis runs elsewhere.
+
+```sh
+docker compose up -d db
+mise run -E test bot
+```
+
+Use a separate Discord application for testing. The current bot registers its
+slash commands globally for the configured application, not just in the test
+server.
+
 ## Role format
 
 The format of the roles must end with one of:

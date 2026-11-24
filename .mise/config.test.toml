@@ -1,0 +1,3 @@
+[tasks.bot]
+description = "Run Liro with the local Discord test configuration"
+run = "cargo run --locked"

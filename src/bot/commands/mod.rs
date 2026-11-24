@@ -39,9 +39,6 @@ impl Error {
                 models::Error::Lichess(lichess::Error::Network(error)) => {
                     return format!("Lichess {}", request_failure(error));
                 }
-                models::Error::Lichess(lichess::Error::InvalidAuthentication(_)) => {
-                    "Lichess authentication payload error"
-                }
             },
             Self::GuildOnly => "missing guild context",
         };

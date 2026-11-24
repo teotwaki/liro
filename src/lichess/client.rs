@@ -61,7 +61,7 @@ impl Client {
 
         let mut headers = header::HeaderMap::new();
 
-        match header::HeaderValue::from_str(&config::lichess_token()) {
+        match header::HeaderValue::from_str(&format!("Bearer {}", config::lichess_token())) {
             Ok(mut auth_value) => {
                 auth_value.set_sensitive(true);
 

@@ -23,7 +23,6 @@ mobc = "0.9"
 mobc-redis = "0.9"
 
 askama = "0.16"
-futures = "0.3.31"
 
 [dependencies.poise]
 version = "0.7.1"
@@ -44,7 +43,6 @@ features = [
   "model",
   "utils",
   "framework",
-  "standard_framework", # Required until the legacy commands are ported.
 ]
 
 [dependencies.tokio]

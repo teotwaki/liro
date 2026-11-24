@@ -1,11 +1,7 @@
-use serenity::{
-    framework::standard::{CommandResult, macros::command},
-    model::prelude::*,
-    prelude::*,
-};
+use super::{Context, Result};
 
-#[command]
-async fn help(ctx: &Context, msg: &Message) -> CommandResult {
+#[poise::command(prefix_command)]
+pub async fn help(ctx: Context<'_>) -> Result<()> {
     trace!("help() called");
     let message = "Hi, I'm liro!\n\
                    I help automate role assignments based on your rating. To get started, please \
@@ -15,7 +11,7 @@ async fn help(ctx: &Context, msg: &Message) -> CommandResult {
                    roles by saying `ohnomy rating` (or `/rating`)\n\
                    If you want me to forget everything I know about you, just say `ohnomy gdpr` \
                    (or `/unlink`)";
-    msg.channel_id.say(&ctx.http, message).await?;
+    ctx.say(message).await?;
 
     Ok(())
 }

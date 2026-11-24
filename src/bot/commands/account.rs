@@ -1,158 +1,85 @@
-use super::{Response, Result, rating_update::update_ratings};
+use super::{Context, Result, guild_id};
 use crate::{
-    bot::run::{PoolContainer, RoleManagerContainer},
+    bot::Data,
+    db::Pool,
     models::{Challenge, User},
 };
-use serenity::{
-    all::CreateMessage,
-    framework::standard::{CommandResult, macros::command},
-    model::prelude::*,
-    prelude::*,
-};
+use poise::serenity_prelude::{CreateMessage, GuildId, Http, UserId};
 
-pub async fn unlink(ctx: &Context, guild_id: GuildId, discord_id: UserId) -> Result<Response> {
-    trace!("unlink() called");
-
-    info!(
-        "Deleting data for discord_id={} in guild_id={}",
-        discord_id, guild_id,
-    );
-
-    let pool;
-    let rm;
-    {
-        let data = ctx.data.read().await;
-        pool = data.get::<PoolContainer>().unwrap().clone();
-        rm = data.get::<RoleManagerContainer>().unwrap().clone();
-    }
-
-    let response = match User::find(&pool, guild_id, discord_id).await {
-        Ok(Some(mut user)) => {
-            let member = ctx
-                .http
-                .get_member(guild_id, discord_id)
-                .await
-                .map_err(|e| {
-                    error!(
-                        "Could not retrieve user information for discord_id={} in guild_id={}: {}",
-                        discord_id, guild_id, e
-                    );
-                    e
-                })?;
-            let role_ids = rm.other_rating_range_roles(guild_id, []);
-
-            for role_id in role_ids {
-                if member.roles.contains(&role_id) {
-                    ctx.http
-                        .remove_member_role(guild_id, discord_id, role_id, None)
-                        .await
-                        .map_err(|e| {
-                            error!(
-                                "Could not remove role_id={} from discord_id={}: {}",
-                                role_id, discord_id, e
-                            );
-                            e
-                        })?;
-                }
-            }
-
-            user.delete(&pool).await?;
-
-            Response::PrivateSentence("User information deleted. Toodles! :wave:".to_string())
-        }
-        Ok(None) => {
-            Response::PrivateSentence("I don't see any data to delete:question:".to_string())
-        }
-        Err(why) => {
-            error!("Unable to query database: {}", why);
-            Response::Sentence("Internal bot error. @teotwaki, I'm scared.".to_string())
-        }
+async fn unlink_account(
+    data: &Data,
+    http: &Http,
+    guild_id: GuildId,
+    discord_id: UserId,
+) -> Result<&'static str> {
+    info!("Deleting data for discord_id={discord_id} in guild_id={guild_id}");
+    let Some(mut user) = User::find(&data.pool, guild_id, discord_id).await? else {
+        return Ok("I don't see any data to delete:question:");
     };
-
-    Ok(response)
-}
-
-#[command]
-async fn gdpr(ctx: &Context, msg: &Message) -> CommandResult {
-    trace!("gdpr() called");
-
-    match unlink(ctx, msg.guild_id.unwrap(), msg.author.id).await? {
-        Response::PrivateSentence(s) | Response::Sentence(s) => {
-            let builder = CreateMessage::new().content(s);
-            msg.channel_id.send_message(&ctx, builder).await?;
+    let member = http.get_member(guild_id, discord_id).await?;
+    for role_id in data.roles.other_rating_range_roles(guild_id, []) {
+        if member.roles.contains(&role_id) {
+            http.remove_member_role(guild_id, discord_id, role_id, None)
+                .await
+                .map_err(|error| {
+                    error!(
+                        "Could not remove role_id={role_id} from discord_id={discord_id}: {error}"
+                    );
+                    error
+                })?;
         }
-        _ => {}
     }
-
-    Ok(())
+    user.delete(&data.pool).await?;
+    Ok("User information deleted. Toodles! :wave:")
 }
 
-pub async fn link(ctx: &Context, guild_id: GuildId, discord_id: UserId) -> Result<Response> {
-    trace!("link() called");
-    info!(
-        "Handling link command for discord_id={} in guild_id={}",
-        discord_id, guild_id,
-    );
-    let pool;
-    {
-        let data = ctx.data.read().await;
-        pool = data.get::<PoolContainer>().unwrap().clone();
-    }
-    let challenge = Challenge::new(&pool, guild_id, discord_id).await?;
-
-    let whisper = format!(
+async fn create_link(pool: &Pool, guild_id: GuildId, discord_id: UserId) -> Result<String> {
+    info!("Handling link command for discord_id={discord_id} in guild_id={guild_id}");
+    let challenge = Challenge::new(pool, guild_id, discord_id).await?;
+    Ok(format!(
         "Please connect your account using the following link: {}",
         challenge.lichess_url()
-    );
-
-    Ok(Response::PrivateSentence(whisper))
+    ))
 }
 
-#[command]
-async fn account(ctx: &Context, msg: &Message) -> CommandResult {
-    trace!("account() called");
-    let guild_id = msg.guild_id.unwrap();
-    let discord_id = msg.author.id;
-
-    let response = link(ctx, guild_id, discord_id).await?;
-
-    if let Response::PrivateSentence(whisper) = response {
-        let builder = CreateMessage::new().content(whisper);
-        let message = match msg.author.dm(&ctx, builder).await {
-            Ok(_) => "Please check your DMs :)",
-            Err(why) => {
-                debug!("Failed to send DM to user {}: {}", discord_id, why);
-                "I wasn't able to send you a DM. Could you please allow me to message you so I can verify your lichess account?"
-            }
-        };
-        let builder = CreateMessage::new().content(message);
-        msg.channel_id.send_message(&ctx, builder).await?;
-    }
-
+#[poise::command(prefix_command, guild_only)]
+pub async fn gdpr(ctx: Context<'_>) -> Result<()> {
+    let message = unlink_account(ctx.data(), ctx.http(), guild_id(ctx)?, ctx.author().id).await?;
+    ctx.say(message).await?;
     Ok(())
 }
 
-#[command]
-async fn rating(ctx: &Context, msg: &Message) -> CommandResult {
-    trace!("rating() called");
-    let guild_id = msg.guild_id.unwrap();
-    let discord_id = msg.author.id;
-    debug!(
-        "Handling rating command for user with discord_id={}",
-        discord_id
-    );
+/// Deletes all your information from the bot and removes your Discord roles.
+#[poise::command(slash_command, guild_only, ephemeral)]
+pub async fn unlink(ctx: Context<'_>) -> Result<()> {
+    let message = unlink_account(ctx.data(), ctx.http(), guild_id(ctx)?, ctx.author().id).await?;
+    ctx.say(message).await?;
+    Ok(())
+}
 
-    match update_ratings(ctx, guild_id, discord_id).await? {
-        Response::Embed(e) => {
-            let builder = CreateMessage::new().embed(e);
-            msg.channel_id.send_message(&ctx, builder).await?;
+#[poise::command(prefix_command, guild_only)]
+pub async fn account(ctx: Context<'_>) -> Result<()> {
+    let discord_id = ctx.author().id;
+    let whisper = create_link(&ctx.data().pool, guild_id(ctx)?, discord_id).await?;
+    let message = match ctx
+        .author()
+        .dm(ctx.http(), CreateMessage::new().content(whisper))
+        .await
+    {
+        Ok(_) => "Please check your DMs :)",
+        Err(_) => {
+            debug!("Failed to send DM to user {discord_id}");
+            "I wasn't able to send you a DM. Could you please allow me to message you so I can verify your lichess account?"
         }
-        Response::Sentence(s) => {
-            let builder = CreateMessage::new().content(s);
-            msg.channel_id.send_message(&ctx, builder).await?;
-        }
-        _ => {}
-    }
+    };
+    ctx.say(message).await?;
+    Ok(())
+}
 
+/// Connects your lichess.org account with Liro. Needed to update ratings.
+#[poise::command(slash_command, guild_only, ephemeral)]
+pub async fn link(ctx: Context<'_>) -> Result<()> {
+    let whisper = create_link(&ctx.data().pool, guild_id(ctx)?, ctx.author().id).await?;
+    ctx.say(whisper).await?;
     Ok(())
 }

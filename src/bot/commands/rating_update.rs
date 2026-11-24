@@ -1,33 +1,36 @@
-use super::{Response, Result};
-use crate::{
-    bot::run::{LichessClientContainer, PoolContainer, RoleManagerContainer},
-    lichess::Format,
-    models::User,
+use super::{Context, Result, guild_id};
+use crate::{bot::Data, lichess::Format, models::User};
+use poise::{
+    CreateReply,
+    serenity_prelude::{CreateEmbed, CreateEmbedFooter, GuildId, Http, RoleId, UserId},
 };
-use serenity::{all::CreateEmbedFooter, builder::CreateEmbed, model::prelude::*, prelude::*};
 use strum::IntoEnumIterator;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
+/// Retrieves your updated lichess ratings and gives you Discord roles
+#[poise::command(prefix_command, slash_command, guild_only)]
+pub async fn rating(ctx: Context<'_>) -> Result<()> {
+    let reply = update_ratings(ctx.data(), ctx.http(), guild_id(ctx)?, ctx.author().id).await?;
+    ctx.send(reply).await?;
+    Ok(())
+}
+
 async fn update_rating_roles(
-    ctx: &Context,
+    http: &Http,
     guild_id: GuildId,
     discord_id: UserId,
     rating_roles: Vec<RoleId>,
     removeable_roles: Vec<RoleId>,
 ) -> Result<(Vec<RoleId>, Vec<RoleId>)> {
     trace!("update_rating_roles() called");
-    let member = ctx
-        .http
-        .get_member(guild_id, discord_id)
-        .await
-        .map_err(|e| {
-            error!(
-                "Could not retrieve user information for discord_id={} in guild_id={}: {}",
-                discord_id, guild_id, e
-            );
-            e
-        })?;
+    let member = http.get_member(guild_id, discord_id).await.map_err(|e| {
+        error!(
+            "Could not retrieve user information for discord_id={} in guild_id={}: {}",
+            discord_id, guild_id, e
+        );
+        e
+    })?;
 
     let mut added = vec![];
     let mut removed = vec![];
@@ -37,8 +40,7 @@ async fn update_rating_roles(
             debug!("User already has role_id={}", role_id)
         } else {
             debug!("User is missing role_id={}", role_id);
-            ctx.http
-                .add_member_role(guild_id, discord_id, role_id, None)
+            http.add_member_role(guild_id, discord_id, role_id, None)
                 .await
                 .map_err(|e| {
                     error!(
@@ -55,8 +57,7 @@ async fn update_rating_roles(
     for role_id in removeable_roles {
         if member.roles.contains(&role_id) {
             debug!("User has extra role_id={} that should be removed", role_id);
-            ctx.http
-                .remove_member_role(guild_id, discord_id, role_id, None)
+            http.remove_member_role(guild_id, discord_id, role_id, None)
                 .await
                 .map_err(|e| {
                     error!(
@@ -73,11 +74,12 @@ async fn update_rating_roles(
     Ok((added, removed))
 }
 
-pub async fn update_ratings(
-    ctx: &Context,
+async fn update_ratings(
+    data: &Data,
+    http: &Http,
     guild_id: GuildId,
     discord_id: UserId,
-) -> Result<Response> {
+) -> Result<CreateReply> {
     trace!("update_ratings() called");
 
     info!(
@@ -85,26 +87,20 @@ pub async fn update_ratings(
         discord_id, guild_id
     );
 
-    let lichess;
-    let pool;
-    let rm;
-    {
-        let data = ctx.data.read().await;
-
-        lichess = data.get::<LichessClientContainer>().unwrap().clone();
-        pool = data.get::<PoolContainer>().unwrap().clone();
-        rm = data.get::<RoleManagerContainer>().unwrap().clone();
-    }
-
-    match User::find(&pool, guild_id, discord_id).await {
-        Ok(Some(mut user)) => {
+    let Data {
+        pool,
+        lichess,
+        roles: rm,
+    } = data;
+    match User::find(pool, guild_id, discord_id).await? {
+        Some(mut user) => {
             let old_ratings = user.get_ratings().clone();
-            let ratings = user.update_ratings(&pool, &lichess).await?.clone();
+            let ratings = user.update_ratings(pool, lichess).await?;
 
-            let rating_roles = rm.find_rating_range_roles(guild_id, &ratings);
+            let rating_roles = rm.find_rating_range_roles(guild_id, ratings);
             let removeable_roles = rm.other_rating_range_roles(guild_id, &rating_roles);
             let (added, removed) =
-                update_rating_roles(ctx, guild_id, discord_id, rating_roles, removeable_roles)
+                update_rating_roles(http, guild_id, discord_id, rating_roles, removeable_roles)
                     .await?;
 
             let mut embed = CreateEmbed::default();
@@ -162,18 +158,11 @@ pub async fn update_ratings(
                     VERSION
                 )));
 
-            Ok(Response::Embed(embed))
+            Ok(CreateReply::default().embed(embed))
         }
-        Ok(None) => Ok(Response::Sentence(
+        None => Ok(CreateReply::default().content(
             "Couldn't find a lichess user associated with your account. Please use the `ohnomy \
-            account` (or `/link`) command first."
-                .to_string(),
+            account` (or `/link`) command first.",
         )),
-        Err(why) => {
-            error!("Unable to query database: {}", why);
-            Ok(Response::Sentence(
-                "Internal bot error. @teotwaki, I'm scared.".to_string(),
-            ))
-        }
     }
 }

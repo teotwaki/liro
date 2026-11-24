@@ -4,5 +4,12 @@ mod rating_range;
 mod role_manager;
 mod run;
 
-pub use handler::Handler;
+use crate::{db::Pool, lichess};
+use role_manager::RoleManager;
 pub use run::run;
+
+struct Data {
+    pool: Pool,
+    lichess: lichess::Client,
+    roles: RoleManager,
+}

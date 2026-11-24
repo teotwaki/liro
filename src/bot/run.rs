@@ -88,20 +88,21 @@ async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
                     )
                     .await
                     .map(|_| ())
+                    .map_err(Error::from)
             } else {
                 Ok(())
             }
         }
         poise::FrameworkError::Command { error, ctx, .. } => {
-            error!("Error handling {}: {error}", ctx.command().name);
-            ctx.say("Internal bot error. Please try again later.")
-                .await
-                .map(|_| ())
+            commands::send_command_error(ctx, &error).await
         }
-        error => poise::builtins::on_error(error).await,
+        error => poise::builtins::on_error(error).await.map_err(Error::from),
     };
     if let Err(error) = result {
-        error!("Unable to handle Discord command error: {error}");
+        error!(
+            "Unable to respond to a Discord command error: {}",
+            error.diagnostic()
+        );
     }
 }
 

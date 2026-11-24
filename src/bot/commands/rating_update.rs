@@ -1,4 +1,4 @@
-use super::{Context, Result, guild_id};
+use super::{Context, Result, guild_id, reply::respond};
 use crate::{bot::Data, lichess::Format, models::User};
 use poise::{
     CreateReply,
@@ -11,9 +11,10 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 /// Retrieves your updated lichess ratings and gives you Discord roles
 #[poise::command(prefix_command, slash_command, guild_only)]
 pub async fn rating(ctx: Context<'_>) -> Result<()> {
-    let reply = update_ratings(ctx.data(), ctx.http(), guild_id(ctx)?, ctx.author().id).await?;
-    ctx.send(reply).await?;
-    Ok(())
+    respond(ctx, async {
+        update_ratings(ctx.data(), ctx.http(), guild_id(ctx)?, ctx.author().id).await
+    })
+    .await
 }
 
 async fn update_rating_roles(

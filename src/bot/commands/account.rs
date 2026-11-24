@@ -1,10 +1,13 @@
-use super::{Context, Result, guild_id};
+use super::{Context, Result, guild_id, reply::respond};
 use crate::{
     bot::Data,
     db::Pool,
     models::{Challenge, User},
 };
-use poise::serenity_prelude::{CreateMessage, GuildId, Http, UserId};
+use poise::{
+    CreateReply,
+    serenity_prelude::{CreateMessage, GuildId, Http, UserId},
+};
 
 async fn unlink_account(
     data: &Data,
@@ -52,9 +55,12 @@ pub async fn gdpr(ctx: Context<'_>) -> Result<()> {
 /// Deletes all your information from the bot and removes your Discord roles.
 #[poise::command(slash_command, guild_only, ephemeral)]
 pub async fn unlink(ctx: Context<'_>) -> Result<()> {
-    let message = unlink_account(ctx.data(), ctx.http(), guild_id(ctx)?, ctx.author().id).await?;
-    ctx.say(message).await?;
-    Ok(())
+    respond(ctx, async {
+        let message =
+            unlink_account(ctx.data(), ctx.http(), guild_id(ctx)?, ctx.author().id).await?;
+        Ok(CreateReply::default().content(message))
+    })
+    .await
 }
 
 #[poise::command(prefix_command, guild_only)]
@@ -79,7 +85,9 @@ pub async fn account(ctx: Context<'_>) -> Result<()> {
 /// Connects your lichess.org account with Liro. Needed to update ratings.
 #[poise::command(slash_command, guild_only, ephemeral)]
 pub async fn link(ctx: Context<'_>) -> Result<()> {
-    let whisper = create_link(&ctx.data().pool, guild_id(ctx)?, ctx.author().id).await?;
-    ctx.say(whisper).await?;
-    Ok(())
+    respond(ctx, async {
+        let whisper = create_link(&ctx.data().pool, guild_id(ctx)?, ctx.author().id).await?;
+        Ok(CreateReply::default().content(whisper))
+    })
+    .await
 }

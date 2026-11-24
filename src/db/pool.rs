@@ -59,22 +59,10 @@ where
     Ok(conn.get(key.as_ref()).await?)
 }
 
-pub async fn mget<V>(pool: &Pool, keys: V) -> Result<Vec<String>>
-where
-    V: Into<Vec<String>>,
-{
+pub async fn mget(pool: &Pool, keys: Vec<String>) -> Result<Vec<Option<String>>> {
     trace!("mget() called");
     let mut conn = get_connection(pool).await?;
-    let keys = keys.into();
-
-    // TODO: Instead of using the number of keys (inputs), this should be using the number of
-    // outputs (results) to figure out if we should wrap in a Vec or not. At the moment, this can
-    // cause a panic if the number of results is 1
-    if keys.len() == 1 {
-        Ok(vec![conn.get(keys).await?])
-    } else {
-        Ok(conn.get(keys).await?)
-    }
+    Ok(conn.mget(keys).await?)
 }
 
 pub async fn keys<K>(pool: &Pool, prefix: K) -> Result<Vec<String>>

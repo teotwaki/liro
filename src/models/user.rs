@@ -129,8 +129,9 @@ impl User {
         if !keys.is_empty() {
             Ok(db::mget(pool, keys)
                 .await?
-                .iter()
-                .map(|s| serde_json::from_str(s))
+                .into_iter()
+                .flatten()
+                .map(|s| serde_json::from_str(&s))
                 .collect::<std::result::Result<Vec<_>, _>>()?)
         } else {
             Ok(Default::default())

@@ -71,6 +71,7 @@ impl Client {
         }
 
         let http = reqwest::Client::builder()
+            .user_agent("github.com/teotwaki/liro")
             .default_headers(headers)
             .build()
             .unwrap();

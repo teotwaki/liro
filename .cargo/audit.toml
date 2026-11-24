@@ -3,14 +3,14 @@
 
 [advisories]
 ignore = [
-    # Exposure is limited to the bot's outbound gateway TLS to
-    # Discord (fixed endpoint, no inbound traffic), so the
-    # practical risk is an active MITM on the bot's egress path.
-    "RUSTSEC-2026-0346", # rustls: Debug impls expose TLS secrets
-    "RUSTSEC-2026-0349", # rustls: downgrade to classical key exchange
-    "RUSTSEC-2026-0049", # webpki: faulty CRL Distribution Point matching
-    "RUSTSEC-2026-0098", # webpki: URI name constraints accepted
-    "RUSTSEC-2026-0099", # webpki: wildcard name constraints accepted
-    "RUSTSEC-2026-0104", # webpki: reachable panic in CRL parsing
-    "RUSTSEC-2026-0382", # webpki: distrusted intermediates accepted
+    # These advisories affect rustls and webpki. Both are transitive
+    # dependencies inherited from serenity (through reqwest 0.12). Need a new
+    # version of serenity before these can be removed.
+    "RUSTSEC-2026-0346",
+    "RUSTSEC-2026-0349",
+    "RUSTSEC-2026-0049",
+    "RUSTSEC-2026-0098",
+    "RUSTSEC-2026-0099",
+    "RUSTSEC-2026-0104",
+    "RUSTSEC-2026-0382",
 ]

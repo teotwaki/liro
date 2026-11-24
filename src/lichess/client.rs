@@ -90,7 +90,8 @@ impl Client {
             .get("https://lichess.org/api/account")
             .header("Authorization", format!("Bearer {}", access_token.as_ref()))
             .send()
-            .await?;
+            .await?
+            .error_for_status()?;
 
         Ok(result.json::<LichessUser>().await?)
     }
@@ -101,7 +102,14 @@ impl Client {
     {
         trace!("Client::fetch_user_ratings() called");
         let url = format!("https://lichess.org/api/user/{}", username.as_ref());
-        let profile = self.http.get(url).send().await?.json::<Profile>().await?;
+        let profile = self
+            .http
+            .get(url)
+            .send()
+            .await?
+            .error_for_status()?
+            .json::<Profile>()
+            .await?;
         Ok(profile.get_ratings())
     }
 
@@ -128,6 +136,7 @@ impl Client {
             .form(&query_params)
             .send()
             .await?
+            .error_for_status()?
             .json::<AccessToken>()
             .await?;
 

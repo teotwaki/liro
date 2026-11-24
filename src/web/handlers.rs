@@ -107,17 +107,17 @@ pub async fn oauth_callback_handler(
 pub async fn dashboard_handler(pool: Pool) -> Result<impl Reply> {
     trace!("dashboard_handler() called");
 
-    let (guild_count, user_count, unique_user_count, challenge_count) = tokio::join!(
+    let (guild_count, user_counts, challenge_count) = tokio::join!(
         Guild::count(&pool),
-        User::count(&pool),
-        User::unique_count(&pool),
+        User::counts(&pool),
         Challenge::count(&pool)
     );
+    let (user_count, unique_user_count) = user_counts.map_err(Error::Database)?;
 
     let template = DashboardTemplate {
         guild_count: guild_count.map_err(Error::Database)?,
-        user_count: user_count.map_err(Error::Database)?,
-        unique_user_count: unique_user_count.map_err(Error::Database)?,
+        user_count,
+        unique_user_count,
         challenge_count: challenge_count.map_err(Error::Database)?,
     };
 

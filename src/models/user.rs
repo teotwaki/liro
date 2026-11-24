@@ -138,16 +138,8 @@ impl User {
         }
     }
 
-    pub async fn count(pool: &db::Pool) -> Result<usize> {
-        trace!("User::count() called");
-
-        let keys = db::keys(pool, "users:*").await?;
-
-        Ok(keys.len())
-    }
-
-    pub async fn unique_count(pool: &db::Pool) -> Result<usize> {
-        trace!("User::unique_count() called");
+    pub async fn counts(pool: &db::Pool) -> Result<(usize, usize)> {
+        trace!("User::counts() called");
         let keys = db::keys(pool, "users:*").await?;
 
         let mut user_ids: Vec<u64> = keys
@@ -162,7 +154,7 @@ impl User {
         user_ids.sort_unstable();
         user_ids.dedup();
 
-        Ok(user_ids.len())
+        Ok((keys.len(), user_ids.len()))
     }
 
     pub async fn delete(&mut self, pool: &db::Pool) -> Result<bool> {
